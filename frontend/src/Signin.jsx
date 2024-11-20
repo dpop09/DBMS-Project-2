@@ -1,54 +1,59 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function Signin() {
 
-    const [data, setData] = useState([]);
+    const navigate = useNavigate();
 
-    useEffect(() => {
-        fetch('http://localhost:8081/getall')       // call backend route
-       .then(response => response.json())           // Converts the response from the fetch request into JSON format.
-       .then(data => setData(data))            // Updates the state variable data with the fetched data using the setData function.
-       .catch(err => console.log(err));
-    }, []);
+    const handleSignin = async (event) => {
+        event.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        if (!email || !password) {
+            alert("Please fill in all fields");
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/signin', {
+                method: 'POST',
+                headers: {'Content-type': 'application/json'},
+                body: JSON.stringify({ email: email, password: password })
+            })
+            const data = await response.json();
+            if (data === true) {
+                navigate('/home');
+            } else {
+                alert("Invalid email or password");
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
-        <div>
-            <h1>Signin</h1>
-            <div id="table-container">
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>Client ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Address</th>
-                            <th>CC Number</th>
-                            <th>CC Security Code</th>
-                            <th>CC Expiration Date</th>
-                            <th>CC Holder Name</th>
-                            <th>Phone Number</th>
-                            <th>Email</th>
-                        </tr>
-                        {data.map((d, i) => (                 // Maps over the data array to create a table row (<tr>) for each item d in data. The index i is used as a unique key for each row.
-                            <tr key={i}>
-                                <td>{d.client_id}</td>
-                                <td>{d.f_name}</td>
-                                <td>{d.l_name}</td>
-                                <td>{d.address}</td>
-                                <td>{d.cc_number}</td>
-                                <td>{d.cc_security_code}</td>
-                                <td>{d.cc_expiration_date}</td>
-                                <td>{d.cc_holder_name}</td>
-                                <td>{d.phone_number}</td>
-                                <td>{d.email}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <div id="container">
+            <h1 id="title">Signin</h1>
+            <form>
+                <div id="row-flex-box">
+                    <label for="email">Email: </label>
+                    <input type="text" id="email" name="email" />
+                </div>
+                <br></br>
+                <div id="row-flex-box">
+                    <label for="password">Password: </label>
+                    <input type="password" id="password" name="password" />
+                </div>
+                <br></br>
+                <button onClick={handleSignin} id="signin-btn">Signin</button>
+            </form>
+            <div id="flex-box">
+                <h3>Not yet registered?</h3>
+                <Link to="/register">
+                    <a>Register</a>
+                </Link>
             </div>
         </div>
-    );
+    )
 }
 
 export default Signin;

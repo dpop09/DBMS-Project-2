@@ -22,6 +22,53 @@ db.connect((err) => {
 });
 
 const dbOperations = {
+    registerClient: async function (email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber) {
+        try {
+            // generate a random client id
+            const client_id = Math.floor(10000000 + Math.random() * 90000000)
+            // hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const sql = 'INSERT INTO client (client_id, password, f_name, l_name, address, cc_number, cc_security_code, cc_expiration_date, cc_holder_name, phone_number, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            const values = [client_id, hashedPassword, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber, email];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    signinClient: async function (email, password) {
+        try {
+            const sql = 'SELECT * FROM client WHERE email = ?';
+            const values = [email];
+            // check if the client exists
+            const client = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result[0]);
+                    }
+                });
+            });
+            if (!client) {
+                return false;
+            }
+            // check if the password is correct
+            const isMatch = await bcrypt.compare(password, client.password);
+            return isMatch;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
     getAll: async function () {
         try {
             const sql = 'SELECT * FROM client';
