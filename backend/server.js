@@ -10,8 +10,13 @@ app.use(express.urlencoded({extended: false}));
 app.post('/register', async (request, response) => {
     try {
         const {email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber} = request.body;
-        let result = await dbOperations.registerClient(email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber);
-        response.status(200).send(result);
+        let result = 0; // default status of 0 indicating the email already exists
+        // must check if email already exists
+        let doesEmailExist = await dbOperations.doesEmailExist(email);
+        if (!doesEmailExist) { // if the email does not exist, register the client
+            result = await dbOperations.registerClient(email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber);
+        }
+        response.status(200).send({result});
     } catch (error) {
         response.status(500).send(error);
         console.log(error);

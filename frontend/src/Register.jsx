@@ -29,77 +29,82 @@ function Register() {
                 body: JSON.stringify({ email : email, password : password, fname : fname, lname : lname, address : address, ccnumber : ccnumber, ccsecuritycode : ccsecuritycode, ccexpirationdate : ccexpirationdate, ccname : ccname, phonenumber : phonenumber })
             })
             const data = await response.json();
-            if (data === true) { // if the response is successful
+            if (data.result === 1)       // client registered successfully
                 navigate('/home');
-            } else { // if the response is unsuccessful
+            else if (data.result === 0)  // this email already exists
+                alert("Email already exists. Please try again.");
+            else if (data.result === -1) // internal server error
                 alert("Internal Server Error. Please try again later.");
-            }
         } catch (error) {
             console.log(error);
         }
     }
 
     return (    
-        <div id="container">
-            <h1 id="title">Register</h1>
-            <form>
-                <div id="row-flex-box">
-                    <label for="email">Email: </label>
-                    <input type="text" id="email" name="email" />
+        <div id="Register-div-container">
+            <h1 id="Register-h1-title">Register</h1>
+            <form id="Register-form-container">
+                <div id="Register-div-colflexbox">
+                    <div id="Register-div-rowflexbox">
+                        <label for="email">Email: </label>
+                        <input type="text" className="Register-input" id="email" name="email" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="password">Password: </label>
+                        <input type="password" className="Register-input" id="password" name="password" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="fname">First Name: </label>
+                        <input type="text" className="Register-input" id="fname" name="fname" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="lname">Last Name: </label>
+                        <input type="text" className="Register-input" id="lname" name="lname" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="address">Address: </label>
+                        <input type="text" className="Register-input" id="address" name="address" />
+                    </div>
                 </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="password">Password: </label>
-                    <input type="password" id="password" name="password" />
+                <div id="Register-div-colflexbox">
+                    <div id="Register-div-rowflexbox">
+                        <label for="ccnumber">CC Number: </label>
+                        <input type="text" className="Register-input" id="ccnumber" name="ccnumber" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="ccsecuritycode">CC Security Code: </label>
+                        <input type="text" className="Register-input" id="ccsecuritycode" name="ccsecuritycode" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="ccexpirationdate">CC Expiration Date: </label>
+                        <input type="text" className="Register-input" id="ccexpirationdate" name="ccexpirationdate" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="ccholdername">CC Holder Name: </label>
+                        <input type="text" className="Register-input" id="ccname" name="ccholdername" />
+                    </div>
+                    <br></br>
+                    <div id="Register-div-rowflexbox">
+                        <label for="phonenumber">Phone Number: </label>
+                        <input type="text" className="Register-input" id="phonenumber" name="phonenumber" />
+                    </div>
                 </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="fname">First Name: </label>
-                    <input type="text" id="fname" name="fname" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="lname">Last Name: </label>
-                    <input type="text" id="lname" name="lname" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="address">Address: </label>
-                    <input type="text" id="address" name="address" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="ccnumber">Credit Card Number: </label>
-                    <input type="text" id="ccnumber" name="ccnumber" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="ccsecuritycode">Credit Card Security Code: </label>
-                    <input type="text" id="ccsecuritycode" name="ccsecuritycode" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="ccexpirationdate">Credit Card Expiration Date: </label>
-                    <input type="text" id="ccexpirationdate" name="ccexpirationdate" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="ccholdername">Credit Card Holder Name: </label>
-                    <input type="text" id="ccname" name="ccholdername" />
-                </div>
-                <br></br>
-                <div id="row-flex-box">
-                    <label for="phonenumber">Phone Number: </label>
-                    <input type="text" id="phonenumber" name="phonenumber" />
-                </div>
-                <br></br>
-                <button onClick={handleRegister} id="register-btn">Register</button>
             </form>
-            <div id="flex-box">
-                <h3>Already registered? </h3>
-                <Link to="/signin">
-                    <a>Signin</a>
-                </Link>
+            <div id="Register-div-bottomcolflexbox">
+                <button onClick={handleRegister} id="Register-button-register">Register</button>
+                <div id="Register-div-bottomrowflexbox">
+                    <h3>Already registered? </h3>
+                    <Link to="/signin">
+                        <a>Signin</a>
+                    </Link>
+                </div>
             </div>
         </div>
     )

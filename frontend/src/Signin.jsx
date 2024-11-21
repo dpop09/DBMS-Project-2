@@ -31,26 +31,28 @@ function Signin() {
     }
 
     return (
-        <div id="container">
-            <h1 id="title">Signin</h1>
+        <div id="Signin-div-container">
+            <h1 id="Sigin-h1-title">Signin</h1>
             <form>
-                <div id="row-flex-box">
+                <div id="Signin-div-rowflexbox">
                     <label for="email">Email: </label>
-                    <input type="text" id="email" name="email" />
+                    <input className="Signin-input" type="text" id="email" name="email" />
                 </div>
                 <br></br>
-                <div id="row-flex-box">
+                <div id="Signin-div-rowflexbox">
                     <label for="password">Password: </label>
-                    <input type="password" id="password" name="password" />
+                    <input className="Signin-input" type="password" id="password" name="password" />
                 </div>
                 <br></br>
-                <button onClick={handleSignin} id="signin-btn">Signin</button>
             </form>
-            <div id="flex-box">
-                <h3>Not yet registered?</h3>
-                <Link to="/register">
-                    <a>Register</a>
-                </Link>
+            <div id="Signin-div-bottomcolflexbox">
+                <button onClick={handleSignin} id="Signin-button-signin">Signin</button>
+                <div id="Signin-div-bottomrowflexbox">
+                    <h3>Not yet registered?</h3>
+                    <Link to="/register">
+                        <a>Register</a>
+                    </Link>
+                </div>
             </div>
         </div>
     )

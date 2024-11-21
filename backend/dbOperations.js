@@ -33,9 +33,27 @@ const dbOperations = {
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
+                        reject(-1);
+                    } else {
+                        resolve(1);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    doesEmailExist: async function (email) {
+        try {
+            const sql = 'SELECT * FROM client WHERE email = ?';
+            const values = [email];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
                         reject(err);
                     } else {
-                        resolve(true);
+                        resolve(result[0] ? true : false);
                     }
                 });
             });
