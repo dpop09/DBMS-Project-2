@@ -158,6 +158,77 @@ Register.jsx component styling
 }
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+DaveSmithDashboard.jsx component styling
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
+
+#ds-div-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#ds-div-container {
+  text-align: center;
+  padding: 2rem;
+  padding-top: 0;
+}
+  
+#ds-h1-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+#ds-div-flexbox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: top;
+  margin-top: 2rem;
+}
+
+#ds-div-request-container {
+  background-color: #ebebeb;
+  width: 24%;
+  height: 50%;
+  border: 2px solid black;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+
+#ds-div-card {
+  background-color: #ffffff;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 0.5rem;
+}
+
+#ds-div-cardrow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+#ds-p-cardrowlabel {
+  font-weight: bold;
+}
+
+#ds-div-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Home.jsx component styling
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 

@@ -3,17 +3,24 @@ import { Link, useNavigate } from "react-router-dom";
 
 function Signin() {
 
+    const DAVE_SMITH_EMAIL = "davesmith@gmail.com";
+    const DAVE_SMITH_PASSWORD = "dsmith123";
+
     const navigate = useNavigate();
 
     const handleSignin = async (event) => {
         event.preventDefault();
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        if (!email || !password) {
+        if (!email || !password) { // check if email or password is empty
             alert("Please fill in all fields");
             return;
         }
-        try {
+        if (email === DAVE_SMITH_EMAIL && password === DAVE_SMITH_PASSWORD) { // check for Dave Smith credentials
+            navigate('/davesmithdashboard');
+            return;
+        }
+        try { // otherwise check if client's email and password are valid
             const response = await fetch('http://localhost:8081/signin', {
                 method: 'POST',
                 headers: {'Content-type': 'application/json'},

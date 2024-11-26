@@ -1,5 +1,6 @@
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom'
 import Signin from './Signin.jsx'
+import DaveSmithDashboard from './DaveSmithDashboard.jsx'
 import Home from './Home.jsx'
 import Register from './Register.jsx'
 
@@ -14,10 +15,17 @@ function App() {
             element={<Signin />}
           />
           <Route
+            exact
             path='/register'
             element={<Register />}
           />
           <Route
+            exact
+            path='/davesmithdashboard'
+            element={<DaveSmithDashboard />}
+          />
+          <Route
+            exact
             path='/home'
             element={<Home />}
           />
