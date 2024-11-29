@@ -1,12 +1,13 @@
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom'
+import { AuthContext, AuthProvider } from './AuthContext.jsx'
 import Signin from './Signin.jsx'
 import DaveSmithDashboard from './DaveSmithDashboard.jsx'
-import Home from './Home.jsx'
 import Register from './Register.jsx'
+import DrivewayPictures from './DrivewayPictures.jsx'
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Router>
         <Routes>
           <Route
@@ -26,8 +27,8 @@ function App() {
           />
           <Route
             exact
-            path='/home'
-            element={<Home />}
+            path='/drivewaypictures'
+            element={<DrivewayPictures />}
           />
           <Route
             path='*'
@@ -35,7 +36,7 @@ function App() {
           />
         </Routes>
       </Router>
-    </>
+    </AuthProvider>
   )
 }
 

@@ -10,13 +10,19 @@ app.use(express.urlencoded({extended: false}));
 app.post('/register', async (request, response) => {
     try {
         const {email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber} = request.body;
-        let result = 0; // default status of 0 indicating the email already exists
-        // must check if email already exists
-        let doesEmailExist = await dbOperations.doesEmailExist(email);
-        if (!doesEmailExist) { // if the email does not exist, register the client
-            result = await dbOperations.registerClient(email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber);
-        }
+        result = await dbOperations.registerClient(email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber);
         response.status(200).send({result});
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/is-email-in-use', async (request, response) => {
+    try {
+        const {email} = request.body;
+        let result = await dbOperations.isEmailInUse(email);
+        response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);
         console.log(error);
@@ -34,9 +40,72 @@ app.post('/signin', async (request, response) => {
     }
 })
 
-app.get('/getall', async (request, response) => {
+app.get('/get-all-quote-requests', async (request, response) => {
     try {
-        const result = await dbOperations.getAll();
+        const result = await dbOperations.getAllQuoteRequests();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/get-driveway-pictures', async (request, response) => {
+    try {
+        const {quote_id} = request.body;
+        const result = await dbOperations.getDrivewayPictures(quote_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.get('/get-all-quotes', async (request, response) => {
+    try {
+        const result = await dbOperations.getAllQuotes();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.get('/get-all-work-orders', async (request, response) => {
+    try {
+        const result = await dbOperations.getAllWorkOrders();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.get('/get-all-bills', async (request, response) => {
+    try {
+        const result = await dbOperations.getAllBills();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/reject-quote-request', async (request, response) => {
+    try {
+        const {quote_id, request_note, response_note} = request.body;
+        const result = await dbOperations.rejectQuoteRequest(quote_id, request_note, response_note);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/accept-quote-request', async (request, response) => {
+    try {
+        const {quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date} = request.body;
+        const result = await dbOperations.acceptQuoteRequest(quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);
