@@ -8,6 +8,7 @@ function DaveSmithDashboard() {
     const [quotes, setQuotes] = useState([]);
     const [workOrders, setWorkOrders] = useState([]);
     const [bills, setBills] = useState([]);
+    const [billResponses, setBillResponses] = useState([]);
 
     const [isRejectedNoteVisible, setIsRejectedNoteVisible] = useState({});
     const [requestTextAreaValues, setRequestTextAreaValues] = useState({});
@@ -16,7 +17,16 @@ function DaveSmithDashboard() {
     const [acceptCounterProposalPriceValue, setAcceptCounterProposalPriceValue] = useState({});
     const [acceptBeginningDateValue, setAcceptBeginningDateValue] = useState({});
     const [acceptEndDateValue, setAcceptEndDateValue] = useState({});
-
+    const [isQuoteQuitNoteVisible, setIsQuoteQuitNoteVisible] = useState({});
+    const [quoteQuitTextAreaValues, setQuoteQuitTextAreaValues] = useState({});
+    const [isModifyQuoteVisible, setIsModifyQuoteVisible] = useState({});
+    const [modifyQuoteTextAreaValues, setModifyQuoteTextAreaValues] = useState({});
+    const [modifyQuoteCounterProposalPriceValue, setModifyQuoteCounterProposalPriceValue] = useState({});
+    const [modifyQuoteBeginningDateValue, setModfyQuoteBeginningDateValue] = useState({});
+    const [modifyQuoteEndDateValue, setModifyQuoteEndDateValue] = useState({});
+    const [isDisputedBillNoteVisible, setIsDisputedBillNoteVisible] = useState({});
+    const [disputedBillTextAreaValues, setDisputedBillTextAreaValues] = useState({});
+    const [disputedBillModifiedPriceValue, setDisputedBillModifiedPriceValue] = useState({});
 
     const { setQuoteId } = useContext(AuthContext);
 
@@ -43,6 +53,10 @@ function DaveSmithDashboard() {
             .then(response => response.json())
             .then(data => setBills(data))
             .catch(error => console.log(error));
+        fetch('http://localhost:8081/get-all-bill-responses')
+            .then(response => response.json())
+            .then(data => setBillResponses(data))
+            .catch(error => console.log(error));
     }, []);
 
     const parseNotes = (notes) => {
@@ -52,7 +66,6 @@ function DaveSmithDashboard() {
         for (let i = 1; i < parts.length; i += 2) {
             chatEntries.push({ name: parts[i].trim(), message: parts[i + 1].trim() });   
         }
-        console.log(chatEntries);
         return chatEntries; // returns an array of {name, message}
     }
 
@@ -80,6 +93,35 @@ function DaveSmithDashboard() {
         setIsAcceptedNoteVisible((prevState) => ({ // Toggle isAcceptedNoteVisible
             ...prevState,
             [quote_id]: !prevState[quote_id]
+        }));
+    }
+
+    const toggleQuitQuoteNoteVisibility = (quote_id) => {
+        setIsModifyQuoteVisible((prevState) => ({ // Reset isModifyQuoteVisible
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsQuoteQuitNoteVisible((prevState) => ({ // Toggle isQuoteQuitNoteVisible
+            ...prevState,
+            [quote_id]: !prevState[quote_id]
+        }));
+    }
+
+    const toggleModifyQuoteNoteVisibility = (quote_id) => {
+        setIsQuoteQuitNoteVisible((prevState) => ({ // Reset isQuoteQuitNoteVisible
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsModifyQuoteVisible((prevState) => ({ // Toggle isModifyQuoteVisible
+            ...prevState,
+            [quote_id]: !prevState[quote_id]
+        }));
+    }
+
+    const toggleDisputedBillNoteVisibility = (bill_id) => {
+        setIsDisputedBillNoteVisible((prevState) => ({ // Toggle isDisputedBillNoteVisible
+            ...prevState,
+            [bill_id]: !prevState[bill_id]
         }));
     }
 
@@ -117,6 +159,55 @@ function DaveSmithDashboard() {
             [quote_id]: value, // Update the value for the specific quote_id
         }));
     };
+
+    const handleQuoteQuitTextAreaChange = (quote_id, value) => {
+        setQuoteQuitTextAreaValues((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    };
+
+    const handleModifyQuoteTextAreaChange = (quote_id, value) => {
+        setModifyQuoteTextAreaValues((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    };
+
+    const handleModifyQuoteCounterProposalPriceChange = (quote_id, value) => {
+        setModifyQuoteCounterProposalPriceValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleModifyQuoteBeginningDateChange = (quote_id, value) => {
+        setModfyQuoteBeginningDateValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleModifyQuoteEndDateChange = (quote_id, value) => {
+        setModifyQuoteEndDateValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleDisputedBillTextAreaChange = (bill_response_id, value) => {
+        setDisputedBillTextAreaValues((prevState) => ({
+            ...prevState,
+            [bill_response_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleDisputedBillModifiedPriceChange = (bill_response_id, value) => {
+        setDisputedBillModifiedPriceValue((prevState) => ({
+            ...prevState,
+            [bill_response_id]: value, // Update the value for the specific quote_id
+        }));
+    }
 
     const handleRejectRequest = async (quote_id, request_note) => {
         const response_note = requestTextAreaValues[quote_id];
@@ -159,6 +250,101 @@ function DaveSmithDashboard() {
                 alert('Request accepted successfully.');
             } else {
                 alert('Error accepting request.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleQuitQuote = async (quote_id, response_note) => {
+        const quit_note = quoteQuitTextAreaValues[quote_id];
+        if (!quit_note) { // Check if the quit note is empty
+            alert('Please provide a quit note.');
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/quit-quote', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, response_note, quit_note })
+            });
+            if (response.ok) {
+                alert('Quote quit successfully.');
+            } else {
+                alert('Error quiting quote.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleModifyQuote = async (quote_id, response_note) => {
+        const modify_note = modifyQuoteTextAreaValues[quote_id];
+        const counter_proposal_price = modifyQuoteCounterProposalPriceValue[quote_id];
+        const beginning_date = modifyQuoteBeginningDateValue[quote_id];
+        const end_date = modifyQuoteEndDateValue[quote_id];
+        if (!modify_note) { // Check if the modify note is empty
+            alert('Please provide a modify note.');
+            return;
+        }
+        if (beginning_date && !end_date) { // check if beginning_date is provided and end_date is not provided
+            alert('Please provide both the beginning and end dates.');
+            return;
+        }
+        if (!beginning_date && end_date) { // check if beginning_date is not provided and end_date is provided
+            alert('Please provide both the beginning and end dates.');
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/modify-quote', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, response_note, modify_note, counter_proposal_price, beginning_date, end_date })
+            });
+            if (response.ok) {
+                alert('Quote modified successfully.');
+            } else {
+                alert('Error modifying quote.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleGenerateBill = async (quote_id, order_id) => {
+        try {
+            const response = await fetch('http://localhost:8081/generate-bill', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, order_id })
+            });
+            if (response.ok) {
+                alert('Bill generated successfully.');
+            } else {
+                alert('Error generating bill.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleRespondToBill = async (bill_response_id, initial_notes) => {
+        const response_note = disputedBillTextAreaValues[bill_response_id];
+        const modified_price = disputedBillModifiedPriceValue[bill_response_id];
+        if (!response_note) { // Check if the response note is empty
+            alert('Please provide a response note.');
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/respond-to-bill-response', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ bill_response_id, initial_notes, response_note, modified_price })
+            });
+            if (response.ok) {
+                alert('Bill responded successfully.');
+            } else {
+                alert('Error responding to bill.');
             }
         } catch (error) {
             console.log(error);
@@ -325,9 +511,69 @@ function DaveSmithDashboard() {
                                     <button onClick={() => handleSeeDrivewayPictures(quote.quote_id)}>View</button>
                                 </div>
                                 <div id="ds-div-buttons">
-                                    <button>Reject</button>
-                                    <button>Accept</button>
+                                    <button onClick={() => toggleQuitQuoteNoteVisibility(quote.quote_id)}>Quit</button>
+                                    <button onClick={() => toggleModifyQuoteNoteVisibility(quote.quote_id)}>Modify</button>
                                 </div>
+                                {isQuoteQuitNoteVisible[quote.quote_id] && (
+                                    <div id="ds-div-response-note">
+                                        <textarea
+                                            value={quoteQuitTextAreaValues[quote.quote_id] || ''}
+                                            onChange={(e) => 
+                                                handleQuoteQuitTextAreaChange(quote.quote_id, e.target.value)
+                                            }
+                                            placeholder="Enter your quitting note here..."
+                                            rows="5"
+                                            cols="50"
+                                            style={{resize: "none" }}
+                                        />
+                                        <button onClick={() => handleQuitQuote(quote.quote_id, quote.response_note)}>Finalize Quit</button>
+                                    </div>
+                                )}
+                                {isModifyQuoteVisible[quote.quote_id] && (
+                                    <div id="ds-div-response-note">
+                                        <textarea
+                                            value={modifyQuoteTextAreaValues[quote.quote_id] || ''}
+                                            onChange={(e) => 
+                                                handleModifyQuoteTextAreaChange(quote.quote_id, e.target.value)
+                                            }
+                                            placeholder="Enter your response note here..."
+                                            rows="5"
+                                            cols="50"
+                                            style={{resize: "none" }}
+                                        />
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>Counter Proposal Price:</label>
+                                            <input 
+                                                type="text" 
+                                                value={modifyQuoteCounterProposalPriceValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteCounterProposalPriceChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>Beginning Date:</label>
+                                            <input 
+                                                type="date"
+                                                value={modifyQuoteBeginningDateValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteBeginningDateChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>End Date:</label>
+                                            <input 
+                                                type="date"
+                                                value={modifyQuoteEndDateValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteEndDateChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <button onClick={() => handleModifyQuote(quote.quote_id, quote.response_note)}>Submit Modification</button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (
@@ -359,13 +605,8 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Order Status:</p>
                                     <p>{order.order_status}</p>
                                 </div>
-                                <div id="ds-div-cardrow">
-                                    <p id="ds-p-cardrowlabel">Driveway Pictures:</p>
-                                    <button onClick={() => handleSeeDrivewayPictures(order.quote_id)}>View</button>
-                                </div>
                                 <div id="ds-div-buttons">
-                                    <button>Reject</button>
-                                    <button>Accept</button>
+                                    <button onClick={() => handleGenerateBill(order.quote_id, order.order_id)}>Generate Bill</button>
                                 </div>
                             </div>
                         ))
@@ -375,7 +616,7 @@ function DaveSmithDashboard() {
                 </div>
                 <div id="ds-div-card-column">
                     <h2>Bills</h2>
-                    {workOrders.length > 0 ? (
+                    {bills.length > 0 ? (
                         bills.map((bill) => (
                             <div key={bill.bill_id} id="ds-div-card">
                                 <div id="ds-div-cardrow">
@@ -394,10 +635,71 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Bill Status:</p>
                                     <p>{bill.bill_status}</p>
                                 </div>
-                                <div id="ds-div-buttons">
-                                    <button>Reject</button>
-                                    <button>Accept</button>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No new bills are available.</p>
+                    )}
+                </div>
+                <div id="ds-div-card-column">
+                    <h2>Bill Responses</h2>
+                    {billResponses.length > 0 ? (
+                        billResponses.map((billResponse) => (
+                            <div key={billResponse.bill_response_id} id="ds-div-card">
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill Response ID:</p>
+                                    <p>{billResponse.bill_response_id}</p>
                                 </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill ID:</p>
+                                    <p>{billResponse.bill_id}</p>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Notes:</p>
+                                    <div id="ds-div-chatwindow">
+                                        {parseNotes(billResponse.response_note).map((entry, index) => (
+                                            <p key={index}>
+                                                <strong>{entry.name}:</strong> {entry.message}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill Amount:</p>
+                                    <p>${billResponse.response_bill_amount}</p>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill Status:</p>
+                                    <p>{billResponse.response_status}</p>
+                                </div>
+                                <div id="ds-div-buttons">
+                                    <button onClick={() => toggleDisputedBillNoteVisibility(billResponse.bill_response_id)}>Respond</button>
+                                </div>
+                                {isDisputedBillNoteVisible[billResponse.bill_response_id] && (
+                                    <div id="ds-div-response-note">
+                                        <textarea
+                                            value={disputedBillTextAreaValues[billResponse.bill_response_id] || ''}
+                                            onChange={(e) => 
+                                                handleDisputedBillTextAreaChange(billResponse.bill_response_id, e.target.value)
+                                            }
+                                            placeholder="Enter your response here..."
+                                            rows="5"
+                                            cols="50"
+                                            style={{resize: "none" }}
+                                        />
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>Modify Bill Amount:</label>
+                                            <input 
+                                                type="text" 
+                                                value={disputedBillModifiedPriceValue[billResponse.bill_response_id] || ''}
+                                                onChange={(e) => 
+                                                    handleDisputedBillModifiedPriceChange(billResponse.bill_response_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <button onClick={() => handleRespondToBill(billResponse.bill_response_id, billResponse.response_note)}>Submit Response</button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (

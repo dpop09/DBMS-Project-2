@@ -91,6 +91,16 @@ app.get('/get-all-bills', async (request, response) => {
     }
 })
 
+app.get('/get-all-bill-responses', async (request, response) => {
+    try {
+        const result = await dbOperations.getAllBillResponses();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
 app.post('/reject-quote-request', async (request, response) => {
     try {
         const {quote_id, request_note, response_note} = request.body;
@@ -106,6 +116,50 @@ app.post('/accept-quote-request', async (request, response) => {
     try {
         const {quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date} = request.body;
         const result = await dbOperations.acceptQuoteRequest(quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/quit-quote', async (request, response) => {
+    try {
+        const {quote_id, response_note, quit_note} = request.body;
+        const result = await dbOperations.quitQuote(quote_id, response_note, quit_note);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }    
+})
+
+app.post('/modify-quote', async (request, response) => {
+    try {
+        const {quote_id, response_note, modify_note, counter_proposal_price, beginning_date, end_date} = request.body;
+        const result = await dbOperations.modifyQuote(quote_id, response_note, modify_note, counter_proposal_price, beginning_date, end_date);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/generate-bill', async (request, response) => {
+    try {
+        const {quote_id, order_id} = request.body;
+        const result = await dbOperations.generateBill(quote_id, order_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/respond-to-bill-response', async (request, response) => {
+    try {
+        const {bill_response_id, initial_notes, response_note, modified_price} = request.body;
+        const result = await dbOperations.respondToBillResponse(bill_response_id, initial_notes, response_note, modified_price);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);
