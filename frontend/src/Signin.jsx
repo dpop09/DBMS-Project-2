@@ -27,9 +27,9 @@ function Signin() {
                 body: JSON.stringify({ email: email, password: password })
             })
             const data = await response.json();
-            if (data === true) {
+            if (data) { // if the client email and password are valid
                 navigate('/home');
-            } else {
+            } else { // if the client email and password are invalid
                 alert("Invalid email or password");
             }
         } catch (error) {

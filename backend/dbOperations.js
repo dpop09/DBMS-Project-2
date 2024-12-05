@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 dotenv.config(); // read from .env file
 
 // create a connection to the database
@@ -24,30 +25,57 @@ db.connect((err) => {
 const dbOperations = {
     registerClient: async function (email, password, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber) {
         try {
-            // generate a random client id
-            const client_id = Math.floor(10000000 + Math.random() * 90000000)
+            // generate UUIDs for client and card
+            const client_id = uuidv4();
+            const card_id = uuidv4();
+    
             // hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
-            const sql = 'INSERT INTO client (client_id, password, f_name, l_name, address, cc_number, cc_security_code, cc_expiration_date, cc_holder_name, phone_number, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-            const values = [client_id, hashedPassword, fname, lname, address, ccnumber, ccsecuritycode, ccexpirationdate, ccname, phonenumber, email];
-            const response = await new Promise((resolve, reject) => {
-                db.query(sql, values, (err, result) => {
+    
+            // insert into client table
+            const client_sql = 'INSERT INTO client (client_id, password, first_name, last_name, address, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            const client_values = [client_id, hashedPassword, fname, lname, address, phonenumber, email];
+    
+            const client_response = await new Promise((resolve, reject) => {
+                db.query(client_sql, client_values, (err, result) => {
                     if (err) {
-                        reject(-1);
+                        console.log('Error inserting into client table:', err);
+                        reject(false);
                     } else {
-                        resolve(1);
+                        resolve(true);
                     }
                 });
             });
-            return response;
+    
+            // insert into credit_card_info table
+            const ccinfo_sql = 'INSERT INTO credit_card_info (card_id, client_id, card_number, name_on_card, cvv, expiry_date) VALUES (?, ?, ?, ?, ?, ?)';
+            const ccinfo_values = [card_id, client_id, ccnumber, ccname, ccsecuritycode, ccexpirationdate];
+    
+            const ccinfo_response = await new Promise((resolve, reject) => {
+                db.query(ccinfo_sql, ccinfo_values, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into credit_card_info table:', err);
+                        reject(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
+    
+            // return true only if both inserts succeed
+            return client_response && ccinfo_response;
+    
         } catch (error) {
-            console.log(error);
+            console.log('Error in registerClient function:', error);
+            return false;
         }
-    },
-    doesEmailExist: async function (email) {
+    },    
+    isEmailInUse: async function (email) {
         try {
+            // select email from client
             const sql = 'SELECT * FROM client WHERE email = ?';
             const values = [email];
+
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -57,7 +85,10 @@ const dbOperations = {
                     }
                 });
             });
+
+            // return true if email exists
             return response;
+
         } catch (error) {
             console.log(error);
         }
@@ -87,9 +118,40 @@ const dbOperations = {
             return false;
         }
     },
-    getAll: async function () {
+    createQuoteRequest : async function (client_id, property_address, square_feet, proposed_price, note) {
         try {
-            const sql = 'SELECT * FROM client';
+            // get client's full name
+            const client_name = await dbOperations.getClientFullName(client_id);
+
+            // append client name to the note with a special delimiter so to know who's note it is
+            note = `!@#$%^&*${client_name}!@#$%^&*${note}`;
+
+            // generate UUID for quote_id
+            const quote_id = uuidv4();
+
+            // insert into request_for_quote
+            const request_status = 'Awaiting Dave\'s Approval';
+            const sql = 'INSERT INTO request_for_quote (quote_id, client_id, property_address, square_feet, proposed_price, note, request_status) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            const values = [quote_id, client_id, property_address, square_feet, proposed_price, note, request_status];
+
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into request_for_quote table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getAllQuoteRequests: async function () {
+        try {
+            const sql = 'SELECT * FROM request_for_quote WHERE request_status = "Awaiting Dave\'s Approval"';
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, (err, result) => {
                     if (err) {
@@ -104,6 +166,296 @@ const dbOperations = {
             console.log(error);
         }
     },
+    getDrivewayPictures: async function (quote_id) {
+        try {
+            const sql = 'SELECT picture_id, quote_id, picture_data FROM driveway_pictures WHERE quote_id = ?';
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, [quote_id], (err, results) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        // Convert BLOBs to Base64
+                        const pictures = results.map(row => {
+                            return {
+                                picture_id: row.picture_id,
+                                quote_id: row.quote_id,
+                                picture_data: `data:image/jpeg;base64,${row.picture_data.toString('base64')}`
+                            };
+                        });
+                        resolve(pictures);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+            throw error;
+        }
+    },  
+    getAllQuotes: async function () {
+        try {
+            const sql = 'SELECT * FROM quote_response WHERE response_status = "In Negotiation - Awaiting Client\'s Response" OR response_status = "In Negotiation - Awaiting Dave\'s Response"';
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getAllWorkOrders: async function () {
+        try {
+            const sql = 'SELECT * FROM order_of_work WHERE order_status = "In Progress"';
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getAllBills: async function () {
+        try {
+            const sql = 'SELECT * FROM bill WHERE bill_status = "Awaiting Client\'s Response"';
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    rejectQuoteRequest: async function (quote_id, request_note, response_note) {
+        try {
+            response_note = `${request_note}!@#$%^&*Dave Smith!@#$%^&*${response_note}`;
+            const status = 'Rejected';
+            const sql = 'UPDATE request_for_quote SET request_status = ?, note = ? WHERE quote_id = ?';
+            const values = [status, response_note, quote_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getClientFullName: async function (client_id) {
+        try {
+            const sql = 'SELECT first_name, last_name FROM client WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result[0]);
+                    }
+                });
+            });
+            return `${response.first_name} ${response.last_name}`;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    acceptQuoteRequest: async function (quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date) {
+        try {
+            response_note = `${request_note}!@#$%^&*Dave Smith!@#$%^&*${response_note}`;
+            const response_id = uuidv4();
+            const status = 'In Negotiation - Awaiting Client\'s Response';
+            const time_window = `${beginning_date} to ${end_date}`
+            const sql = 'INSERT INTO quote_response (response_id, quote_id, counter_proposal_price, time_window, response_note, response_status) VALUES (?, ?, ?, ?, ?, ?)';
+            const values = [response_id, quote_id, counter_proposal_price, time_window, response_note, status];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            const request_quote_status = 'Accepted';
+            const sql2 = 'UPDATE request_for_quote SET request_status = ? WHERE quote_id = ?';
+            const values2 = [request_quote_status, quote_id];
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql2, values2, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response && response2;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    quitQuote: async function (quote_id, response_note, quit_note) {
+        try {
+            response_note = `${response_note}!@#$%^&*Dave Smith!@#$%^&*${quit_note}`;
+            const status = 'Quit';
+            const sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
+            const values = [status, response_note, quote_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    modifyQuote: async function (quote_id, response_note, modify_note, counter_proposal_price, beginning_date, end_date) {
+        try {
+            response_note = `${response_note}!@#$%^&*Dave Smith!@#$%^&*${modify_note}`;
+            const status = 'In Negotiation - Awaiting Client\'s Response';
+            let time_window;
+            let sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
+            let values = [status, response_note, quote_id];
+            if (beginning_date && end_date) { // Check if both beginning_date and end_date are provided
+                time_window = `${beginning_date} to ${end_date}`
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ? WHERE quote_id = ?';
+                values = [status, response_note, time_window, quote_id];
+            }
+            if (counter_proposal_price) { // Check if counter_proposal_price is provided
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ?, counter_proposal_price = ? WHERE quote_id = ?';
+                values = [status, response_note, time_window, counter_proposal_price, quote_id];
+            }
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getPriceFromQuote: async function (quote_id) {
+        try {
+            const sql = 'SELECT counter_proposal_price FROM quote_response WHERE quote_id = ?';
+            const values = [quote_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result[0].counter_proposal_price);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    generateBill: async function (quote_id, order_id) {
+        try {
+            let status = 'Completed';
+            let sql = 'UPDATE order_of_work SET order_status = ? WHERE order_id = ?';
+            let values = [status, order_id];
+            const response1 = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            const quote_price = await dbOperations.getPriceFromQuote(quote_id);
+            const bill_id = uuidv4();
+            status = 'Awaiting Client\'s Response';
+            sql = 'INSERT INTO bill (bill_id, order_id, bill_amount, bill_status) VALUES (?, ?, ?, ?)';
+            values = [bill_id, order_id, quote_price, status];
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response1 && response2;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getAllBillResponses: async function () {
+        try {
+            const sql = 'SELECT * FROM bill_response WHERE response_status = "Disputed"';
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    respondToBillResponse: async function (response_id, initial_notes, response_note, modified_price) {
+        try {
+            response_note = `${initial_notes}!@#$%^&*Dave Smith!@#$%^&*${response_note}`;
+            let sql = 'UPDATE bill_response SET response_note = ?, response_bill_amount = ? WHERE bill_response_id = ?';
+            let values = [response_note, modified_price, response_id];
+            if (!modified_price) { // Check if modified_price is provided
+                sql = 'UPDATE bill_response SET response_note = ? WHERE bill_response_id = ?';
+                values = [response_note, response_id];
+            }
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 

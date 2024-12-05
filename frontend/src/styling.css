@@ -187,9 +187,9 @@ DaveSmithDashboard.jsx component styling
   margin-top: 2rem;
 }
 
-#ds-div-request-container {
+#ds-div-card-column {
   background-color: #ebebeb;
-  width: 24%;
+  width: 19%;
   height: 50%;
   border: 2px solid black;
   border-radius: 5px;
@@ -219,6 +219,17 @@ DaveSmithDashboard.jsx component styling
   font-weight: bold;
 }
 
+#ds-div-chatwindow {
+  background-color: #ebebeb;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  align-items: self-start;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 #ds-div-buttons {
   display: flex;
   flex-direction: row;
@@ -227,6 +238,17 @@ DaveSmithDashboard.jsx component styling
   margin-bottom: 1rem;
 }
 
+#ds-div-response-note {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#ds-div-response-note > button {
+  margin-top: 1rem;
+}
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Home.jsx component styling
