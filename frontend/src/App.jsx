@@ -3,6 +3,7 @@ import Signin from './Signin.jsx'
 import DaveSmithDashboard from './DaveSmithDashboard.jsx'
 import Home from './Home.jsx'
 import Register from './Register.jsx'
+import ClientDashboard from './ClientDashboard.jsx'
 
 function App() {
   return (
@@ -23,6 +24,11 @@ function App() {
             exact
             path='/davesmithdashboard'
             element={<DaveSmithDashboard />}
+          />
+           <Route
+            exact
+            path='/ClientDashboard'
+            element={<ClientDashboard />}
           />
           <Route
             exact

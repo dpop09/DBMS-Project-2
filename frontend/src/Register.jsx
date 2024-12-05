@@ -20,7 +20,23 @@ function Register() {
             alert("Please fill in all fields");
             return;
         }
-        try {
+        try { // check if email is already in use
+            const response = await fetch('http://localhost:8081/is-email-in-use', { // send a POST request to the backend route
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify({ email : email })
+            })
+            const data = await response.json();
+            if (data) { // if the email is already in use
+                alert("Email already exists");
+                return;
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        try { // otherwise register the client
             const response = await fetch('http://localhost:8081/register', { // send a POST request to the backend route
                 method: 'POST',
                 headers: {
@@ -29,12 +45,11 @@ function Register() {
                 body: JSON.stringify({ email : email, password : password, fname : fname, lname : lname, address : address, ccnumber : ccnumber, ccsecuritycode : ccsecuritycode, ccexpirationdate : ccexpirationdate, ccname : ccname, phonenumber : phonenumber })
             })
             const data = await response.json();
-            if (data.result === 1)       // client registered successfully
-                navigate('/home');
-            else if (data.result === 0)  // this email already exists
-                alert("Email already exists. Please try again.");
-            else if (data.result === -1) // internal server error
-                alert("Internal Server Error. Please try again later.");
+            if (data) { // if the registration was successful
+                navigate('/login');
+            } else { // if the registration failed
+                alert("Internal server error");
+            }
         } catch (error) {
             console.log(error);
         }
