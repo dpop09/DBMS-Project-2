@@ -35,6 +35,7 @@ function Signin() {
         } catch (error) {
             console.log(error);
         }
+        navigate('/ClientDashboard')
     }
 
     return (
