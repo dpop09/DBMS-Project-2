@@ -1,5 +1,5 @@
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom'
-import { AuthContext, AuthProvider } from './AuthContext.jsx'
+import {AuthContext, AuthProvider } from './AuthContext.jsx'
 import Signin from './Signin.jsx'
 import DaveSmithDashboard from './DaveSmithDashboard.jsx'
 import Register from './Register.jsx'
