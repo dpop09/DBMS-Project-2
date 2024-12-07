@@ -108,17 +108,21 @@ const dbOperations = {
                 });
             });
             if (!client) {
-                return false;
+                return null;
             }
             // check if the password is correct
             const isMatch = await bcrypt.compare(password, client.password);
-            return isMatch;
+            if (isMatch) {
+                return client.client_id;
+            } else {
+                return null;
+            }
         } catch (error) {
             console.log(error);
             return false;
         }
     },
-    createQuoteRequest : async function (client_id, property_address, square_feet, proposed_price, note) {
+    createQuoteRequestAndUploadDrivewayPictures : async function (client_id, property_address, proposed_price, square_feet, note, selectedFile1, selectedFile2, selectedFile3, selectedFile4, selectedFile5) {
         try {
             // get client's full name
             const client_name = await dbOperations.getClientFullName(client_id);
@@ -144,7 +148,82 @@ const dbOperations = {
                     }
                 });
             });
-            return response;
+
+            // insert into driveway_pictures
+            let picture_id1 = uuidv4();
+            const sql1 = 'INSERT INTO driveway_pictures (picture_id, quote_id, picture_data) VALUES (?, ?, ?)';
+            const values1 = [picture_id1, quote_id, selectedFile1];
+
+            const response1 = await new Promise((resolve, reject) => {
+                db.query(sql1, values1, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into driveway_pictures table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            let picture_id2 = uuidv4();
+            const sql2 = 'INSERT INTO driveway_pictures (picture_id, quote_id, picture_data) VALUES (?, ?, ?)';
+            const values2 = [picture_id2, quote_id, selectedFile2];
+
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql2, values2, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into driveway_pictures table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            let picture_id3 = uuidv4();
+            const sql3 = 'INSERT INTO driveway_pictures (picture_id, quote_id, picture_data) VALUES (?, ?, ?)';
+            const values3 = [picture_id3, quote_id, selectedFile3];
+
+            const response3 = await new Promise((resolve, reject) => {
+                db.query(sql3, values3, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into driveway_pictures table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            let picture_id4 = uuidv4();
+            const sql4 = 'INSERT INTO driveway_pictures (picture_id, quote_id, picture_data) VALUES (?, ?, ?)';
+            const values4 = [picture_id4, quote_id, selectedFile4];
+
+            const response4 = await new Promise((resolve, reject) => {
+                db.query(sql4, values4, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into driveway_pictures table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            let picture_id5 = uuidv4();
+            const sql5 = 'INSERT INTO driveway_pictures (picture_id, quote_id, picture_data) VALUES (?, ?, ?)';
+            const values5 = [picture_id5, quote_id, selectedFile5];
+
+            const response5 = await new Promise((resolve, reject) => {
+                db.query(sql5, values5, (err, result) => {
+                    if (err) {
+                        console.log('Error inserting into driveway_pictures table:', err);
+                        reject(false);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+
+            
+
+            return response && response1 && response2 && response3 && response4 && response5;
         } catch (error) {
             console.log(error);
         }

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dbOperations = require('./dbOperations');
+const multer = require('multer');
+const upload = multer({storage: multer.memoryStorage()});
 
 const app = express();
 app.use(cors());
@@ -33,7 +35,7 @@ app.post('/signin', async (request, response) => {
     try {
         const {email, password} = request.body;
         let result = await dbOperations.signinClient(email, password);
-        response.status(200).send(result);
+        response.status(200).send({result});
     } catch (error) {
         response.status(500).send(error);
         console.log(error);
@@ -160,6 +162,24 @@ app.post('/respond-to-bill-response', async (request, response) => {
     try {
         const {bill_response_id, initial_notes, response_note, modified_price} = request.body;
         const result = await dbOperations.respondToBillResponse(bill_response_id, initial_notes, response_note, modified_price);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+        console.log(error);
+    }
+})
+
+app.post('/create-quote', upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 },
+    { name: 'image5', maxCount: 1 }
+]), async (request, response) => {
+    try {
+        const {client_id, property_address, proposed_price, square_feet, note} = request.body;
+        console.log(client_id, property_address, proposed_price, square_feet, note);
+        const result = await dbOperations.createQuoteRequestAndUploadDrivewayPictures(client_id, property_address, proposed_price, square_feet, note, request.files['image1'][0].buffer, request.files['image2'][0].buffer, request.files['image3'][0].buffer, request.files['image4'][0].buffer, request.files['image5'][0].buffer);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);

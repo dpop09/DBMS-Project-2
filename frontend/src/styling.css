@@ -253,13 +253,13 @@ DaveSmithDashboard.jsx component styling
 ClientDashboard.jsx component styling
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-#client-dashboard-container {
+#client-div-container {
   text-align: center;
   padding: 2rem;
   padding-top: 0;
 }
 
-#client-dashboard-header {
+#client-div-header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -267,12 +267,12 @@ ClientDashboard.jsx component styling
   margin-bottom: 1.5rem;
 }
 
-#client-dashboard-header h1 {
+#client-div-header h1 {
   font-size: 2rem;
   margin-bottom: 1rem;
 }
 
-#client-dashboard-flexbox {
+#client-div-flexbox {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -280,16 +280,16 @@ ClientDashboard.jsx component styling
   margin-top: 2rem;
 }
 
-#client-dashboard-column {
+#client-div-card-column {
   background-color: #ebebeb;
-  width: 30%;
+  width: 23%;
   border: 2px solid black;
   border-radius: 5px;
   margin-bottom: 1rem;
   padding: 1rem;
 }
 
-#client-dashboard-card {
+#client-div-card {
   background-color: #ffffff;
   border: 1px solid black;
   border-radius: 5px;
@@ -297,16 +297,16 @@ ClientDashboard.jsx component styling
   padding: 1rem;
 }
 
-#client-dashboard-card p {
+#client-div-card p {
   margin: 0.5rem 0;
 }
 
-#client-dashboard-card label {
+#client-div-card label {
   font-weight: bold;
 }
 
-#client-dashboard-card input,
-#client-dashboard-card textarea {
+#client-div-card input,
+#client-div-card textarea {
   width: 100%;
   padding: 0.5rem;
   margin: 0.5rem 0;
@@ -314,7 +314,7 @@ ClientDashboard.jsx component styling
   border: 1px solid #ddd;
 }
 
-#client-dashboard-card button {
+#client-div-card button {
   background-color: rgb(197, 220, 247);
   font-size: medium;
   width: 100%;
@@ -323,24 +323,24 @@ ClientDashboard.jsx component styling
   margin-top: 0.5rem;
 }
 
-#client-dashboard-card button:hover {
+#client-div-card button:hover {
   background-color: lightsteelblue;
   cursor: pointer;
   transition: 0.3s;
 }
 
-#client-dashboard-card div {
+#client-div-card div {
   margin-top: 1rem;
 }
 
-#client-dashboard-column h2 {
+#client-div-card-column h2 {
   background-color: rgb(197, 220, 247);
   padding: 0.5rem;
   border-radius: 5px;
   margin-bottom: 1rem;
 }
 
-#client-dashboard-column p {
+#client-div-card-column p {
   font-size: 1rem;
   color: gray;
   margin-top: 1rem;

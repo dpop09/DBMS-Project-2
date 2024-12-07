@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { AuthContext } from "./AuthContext.jsx";
 import { Link, useNavigate } from "react-router-dom";
 
 function Signin() {
@@ -7,6 +8,8 @@ function Signin() {
     const DAVE_SMITH_PASSWORD = "dsmith123";
 
     const navigate = useNavigate();
+
+    const { setClientId } = useContext(AuthContext);
 
     const handleSignin = async (event) => {
         event.preventDefault();
@@ -27,8 +30,8 @@ function Signin() {
                 body: JSON.stringify({ email: email, password: password })
             })
             const data = await response.json();
-            if (data) { // if the client email and password are valid
-                navigate('/home');
+            if (data.result) { // if the client email and password are valid
+                setClientId(data.result);
             } else { // if the client email and password are invalid
                 alert("Invalid email or password");
             }
