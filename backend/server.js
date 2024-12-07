@@ -187,6 +187,36 @@ app.post('/create-quote', upload.fields([
     }
 })
 
+app.post('/get-client-requests', async (request, response) => {
+    try {
+        const {client_id} = request.body;
+        const result = await dbOperations.getClientRequests(client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/get-client-quotes', async (request, response) => {
+    try {
+        const {client_id} = request.body;
+        const result = await dbOperations.getClientQuotes(client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-accept-quote', async (request, response) => {
+    try {
+        const {quote_id, client_id} = request.body;
+        const result = await dbOperations.clientAcceptQuote(quote_id, client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")

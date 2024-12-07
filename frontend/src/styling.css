@@ -282,7 +282,7 @@ ClientDashboard.jsx component styling
 
 #client-div-card-column {
   background-color: #ebebeb;
-  width: 23%;
+  width: 18%;
   border: 2px solid black;
   border-radius: 5px;
   margin-bottom: 1rem;
@@ -346,67 +346,24 @@ ClientDashboard.jsx component styling
   margin-top: 1rem;
 }
 
+#client-p-cardrowlabel {
+  font-weight: bold;
+}
+
+#client-div-chatwindow {
+  background-color: #ebebeb;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  align-items: self-start;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 #upload-picture-input {
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 0.5rem;
   margin-top: 0.5rem;
-}
-
-
-/*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Home.jsx component styling
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/
-
-#home-container {
-  text-align: center;
-  padding: 2rem;
-  padding-top: 0;
-}
-  
-#logout-btn {
-  background-color: rgb(215, 215, 215);
-  font-size: medium;
-  width: 5rem;
-  height: 2.3rem;
-  border-radius: 5px;
-}
-#logout-btn:hover {
-  background-color: rgb(198, 198, 198);
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-#table-container {
-  max-height: 250px;
-  overflow-y: auto;
-  margin-bottom: 1.25rem;
-}
-table {
-  width: 100%;
-  margin-top: 2rem;
-  border-collapse: collapse;
-}
-td, th {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-th {
-  color: black;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: left;
-  background-color: rgb(197, 220, 247);
-}
-tr {
-  text-align: left;
-}
-tr:nth-child(odd) {
-  background-color: #e2e2e2;
-}
-tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
-tr:hover {
-  background-color: #d2d2d2;
 }

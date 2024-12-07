@@ -534,6 +534,80 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
+    },
+    getClientRequests: async function (client_id) {
+        try {
+            const sql = 'SELECT * FROM request_for_quote WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getQuoteIdFromClient: async function (client_id) {
+        try {
+            const sql = 'SELECT quote_id FROM request_for_quote WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result[0].quote_id);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getClientQuotes: async function (client_id) {
+        try {
+            const quote_id = await dbOperations.getQuoteIdFromClient(client_id);
+
+            const sql = 'SELECT * FROM quote_response WHERE quote_id = ?';
+            const values = [quote_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    clientAcceptQuote: async function (quote_id, client_id) {
+        try {
+            const sql = 'UPDATE request_for_quote SET client_id = ? WHERE quote_id = ?';
+            const values = [client_id, quote_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
     }
 }
 

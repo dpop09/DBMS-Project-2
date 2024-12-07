@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "./AuthContext.jsx";
+import { Link, useNavigate } from "react-router-dom";
 
 function ClientDashboard() {
+
+    const [requests, setRequests] = useState([]);
     const [quotes, setQuotes] = useState([]);
     const [orders, setOrders] = useState([]);
     const [bills, setBills] = useState([]);
@@ -17,36 +20,11 @@ function ClientDashboard() {
 
     const { clientId } = useContext(AuthContext);
 
-    // Fetch quotes, orders, and bills
-    const fetchQuotes = async () => {
-        try {
-            const response = await fetch(`http://localhost:8081/quotes?client_id=${clientId}`);
-            const data = await response.json();
-            setQuotes(data);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    const navigate = useNavigate();
 
-    const fetchOrders = async () => {
-        try {
-            const response = await fetch(`http://localhost:8081/orders?client_id=${clientId}`);
-            const data = await response.json();
-            setOrders(data);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const fetchBills = async () => {
-        try {
-            const response = await fetch(`http://localhost:8081/bills?client_id=${clientId}`);
-            const data = await response.json();
-            setBills(data);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    const handleLogout = () => {
+        navigate('/');
+    }
 
     // Create a new quote
     const handleCreateQuote = async () => {
@@ -89,7 +67,6 @@ function ClientDashboard() {
                 setSelectedFile3(null);
                 setSelectedFile4(null);
                 setSelectedFile5(null);
-                fetchQuotes();
             } else {
                 alert("Failed to create quote.");
             }
@@ -97,7 +74,33 @@ function ClientDashboard() {
             console.log(error);
         }
     };
+
+    const handleAcceptQuote = async (quoteId) => {
+        try {
+            const response = await fetch("http://localhost:8081/client-accept-quote", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ quote_id: quoteId, client_id: clientId })
+            });
+            if (response.ok) {
+                alert("Quote accepted successfully.");
+            } else {
+                alert("Failed to accept quote.");
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
     
+    const parseNotes = (notes) => {
+        if (!notes) return [];
+        const parts = notes.split('!@#$%^&*');
+        const chatEntries = [];
+        for (let i = 1; i < parts.length; i += 2) {
+            chatEntries.push({ name: parts[i].trim(), message: parts[i + 1].trim() });   
+        }
+        return chatEntries; // returns an array of {name, message}
+    }
 
     // Handle driveway picture upload
     const handleFile1Change = (event) => {
@@ -131,17 +134,44 @@ function ClientDashboard() {
         }
     };
 
+    const getClientRequests = async () => {
+        try {
+            const response = await fetch("http://localhost:8081/get-client-requests", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ client_id:clientId })
+            });
+            const data = await response.json();
+            setRequests(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getClientQuotes = async () => {
+        try {
+            const response = await fetch("http://localhost:8081/get-client-quotes", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ client_id:clientId })
+            });
+            const data = await response.json();
+            setQuotes(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
-        fetchQuotes();
-        fetchOrders();
-        fetchBills();
+        getClientRequests();
+        getClientQuotes();
     }, []);
 
     return (
         <div id="client-div-container">
             <div id="client-div-header">
                 <h1 id="client-h1-title">Welcome to Your Dashboard {clientId}</h1>
-                <button onClick={() => console.log("Logout functionality here")}>Logout</button>
+                <button onClick={handleLogout}>Logout</button>
             </div>
             <div id="client-div-flexbox">
                 {/* Create a Quote Section */}
@@ -206,21 +236,59 @@ function ClientDashboard() {
                     </div>
                 </div>
 
+                {/* Requests Section */}
+                <div id="client-div-card-column">
+                    <h2>Your Requests</h2>
+                    {requests.length > 0 ? (
+                        requests.map((request) => (
+                            <div key={request.quote_id} id="client-div-card">
+                                <p><strong>Quote ID:</strong> {request.quote_id}</p>
+                                <p><strong>Property Address:</strong> {request.property_address}</p>
+                                <p><strong>Square Footage:</strong> {request.square_feet}</p>
+                                <p><strong>Proposed Price:</strong> ${request.proposed_price}</p>
+                                <p id="client-p-cardrowlabel">Notes:</p>
+                                <div id="client-div-chatwindow">
+                                    {parseNotes(request.note).map((entry, index) => (
+                                        <p key={index}>
+                                            <strong>{entry.name}:</strong> {entry.message}
+                                        </p>
+                                    ))}
+                                </div>
+                                <p><strong>Status:</strong> {request.request_status}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No requests available.</p>
+                    )}
+                </div>
+
                 {/* Quotes Section */}
                 <div id="client-div-card-column">
                     <h2>Your Quotes</h2>
                     {quotes.length > 0 ? (
                         quotes.map((quote) => (
                             <div key={quote.quote_id} id="client-div-card">
-                                <p><strong>Property Address:</strong> {quote.property_address}</p>
-                                <p><strong>Proposed Price:</strong> ${quote.proposed_price}</p>
-                                <p><strong>Status:</strong> {quote.request_status}</p>
+                                <p><strong>Response ID:</strong> {quote.response_id}</p>
+                                <p><strong>Quote ID:</strong> {quote.quote_id}</p>
+                                <p><strong>Proposed Price:</strong> ${quote.counter_proposal_price}</p>
+                                <p><strong>Time Window:</strong> {quote.time_window}</p>
+                                <p id="client-p-cardrowlabel">Notes:</p>
+                                <div id="client-div-chatwindow">
+                                    {parseNotes(quote.response_note).map((entry, index) => (
+                                        <p key={index}>
+                                            <strong>{entry.name}:</strong> {entry.message}
+                                        </p>
+                                    ))}
+                                </div>
+                                <p><strong>Status:</strong> {quote.response_status}</p>
+                                <button onClick={() => handleAcceptQuote(quote.quote_id)}>Accept Quote</button>
                             </div>
                         ))
                     ) : (
                         <p>No quotes available.</p>
                     )}
                 </div>
+
 
                 {/* Orders Section */}
                 <div id="client-div-card-column">
