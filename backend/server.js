@@ -116,8 +116,8 @@ app.post('/reject-quote-request', async (request, response) => {
 
 app.post('/accept-quote-request', async (request, response) => {
     try {
-        const {quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date} = request.body;
-        const result = await dbOperations.acceptQuoteRequest(quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date);
+        const {quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date, client_id} = request.body;
+        const result = await dbOperations.acceptQuoteRequest(quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date, client_id);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);
@@ -209,8 +209,28 @@ app.post('/get-client-quotes', async (request, response) => {
 
 app.post('/client-accept-quote', async (request, response) => {
     try {
-        const {quote_id, client_id} = request.body;
-        const result = await dbOperations.clientAcceptQuote(quote_id, client_id);
+        const {quote_id, response_note, accept_note, time_window, client_id} = request.body;
+        const result = await dbOperations.clientAcceptQuote(quote_id, response_note, accept_note, time_window, client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-quit-quote', async (request, response) => {
+    try {
+        const {quote_id, response_note, quit_note, client_id} = request.body;
+        const result = await dbOperations.clientQuitQuote(quote_id, response_note, quit_note, client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-modify-quote', async (request, response) => {
+    try {
+        const { quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id } = request.body;
+        const result = await dbOperations.clientModifyQuote( quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id );
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);

@@ -231,7 +231,7 @@ function DaveSmithDashboard() {
         }
     }
 
-    const handleAcceptRequest = async (quote_id, request_note) => {
+    const handleAcceptRequest = async (quote_id, request_note, client_id) => {
         const counter_proposal_price = acceptCounterProposalPriceValue[quote_id];
         const beginning_date = acceptBeginningDateValue[quote_id];
         const end_date = acceptEndDateValue[quote_id];
@@ -244,7 +244,7 @@ function DaveSmithDashboard() {
             const response = await fetch('http://localhost:8081/accept-quote-request', {
                 method: 'POST',
                 headers: { 'Content-type': 'application/json' },
-                body: JSON.stringify({ quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date })
+                body: JSON.stringify({ quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date, client_id })
             });
             if (response.ok) {
                 alert('Request accepted successfully.');
@@ -462,7 +462,7 @@ function DaveSmithDashboard() {
                                                 }
                                             />
                                         </div>
-                                        <button onClick={() => handleAcceptRequest(request.quote_id, request.note)}>Submit Acceptance</button>
+                                        <button onClick={() => handleAcceptRequest(request.quote_id, request.note, request.client_id)}>Submit Acceptance</button>
                                     </div>
                                 )}
                             </div>
@@ -510,10 +510,12 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Driveway Pictures:</p>
                                     <button onClick={() => handleSeeDrivewayPictures(quote.quote_id)}>View</button>
                                 </div>
-                                <div id="ds-div-buttons">
-                                    <button onClick={() => toggleQuitQuoteNoteVisibility(quote.quote_id)}>Quit</button>
-                                    <button onClick={() => toggleModifyQuoteNoteVisibility(quote.quote_id)}>Modify</button>
-                                </div>
+                                {quote.response_status === 'In Negotiation - Awaiting Dave\'s Response' && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => toggleQuitQuoteNoteVisibility(quote.quote_id)}>Quit</button>
+                                        <button onClick={() => toggleModifyQuoteNoteVisibility(quote.quote_id)}>Modify</button>
+                                    </div>
+                                )}
                                 {isQuoteQuitNoteVisible[quote.quote_id] && (
                                     <div id="ds-div-response-note">
                                         <textarea

@@ -17,6 +17,15 @@ function ClientDashboard() {
     const [selectedFile3, setSelectedFile3] = useState(null);
     const [selectedFile4, setSelectedFile4] = useState(null);
     const [selectedFile5, setSelectedFile5] = useState(null);
+    const [isQuitQuoteResponseVisible, setIsQuitQuoteResponseVisible] = useState({});
+    const [isModifyQuoteResponseVisible, setIsModifyQuoteResponseVisible] = useState({});
+    const [isAcceptQuoteResponseVisible, setIsAcceptQuoteResponseVisible] = useState({});
+    const [quitQuoteResponseTextAreaValues, setQuitQuoteResponseTextAreaValues] = useState({});
+    const [modifyQuoteResponseTextAreaValues, setModifyQuoteResponseTextAreaValues] = useState({});
+    const [modifyQuoteResponseCounterProposalPriceValue, setModifyQuoteResponseCounterProposalPriceValue] = useState({});
+    const [modifyQuoteResponseBeginningDateValue, setModifyQuoteResponseBeginningDateValue] = useState({});
+    const [modifyQuoteResponseEndDateValue, setModifyQuoteResponseEndDateValue] = useState({});
+    const [acceptQuoteResponseTextAreaValues, setAcceptQuoteResponseTextAreaValues] = useState({});
 
     const { clientId } = useContext(AuthContext);
 
@@ -24,6 +33,86 @@ function ClientDashboard() {
 
     const handleLogout = () => {
         navigate('/');
+    }
+
+    const toggleQuitQuoteResponseVisibility = (quote_id) => {
+        setIsModifyQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsAcceptQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsQuitQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: !prevState[quote_id]
+        }));
+    }
+    const toggleModifyQuoteResponseVisibility = (quote_id) => {
+        setIsQuitQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsAcceptQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsModifyQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: !prevState[quote_id]
+        }));
+    }
+    const toggleAcceptQuoteResponseVisibility = (quote_id) => {
+        setIsQuitQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsModifyQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: false
+        }))
+        setIsAcceptQuoteResponseVisible((prevState) => ({
+            ...prevState,
+            [quote_id]: !prevState[quote_id]
+        }));
+    }
+
+    const handleQuitQuoteResponseTextAreaChange = (quote_id, value) => {
+        setQuitQuoteResponseTextAreaValues((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    };
+    const handleModifyQuoteResponseTextAreaChange = (quote_id, value) => {
+        setModifyQuoteResponseTextAreaValues((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+    const handleModifyQuoteResponseCounterProposalPriceChange = (quote_id, value) => {
+        setModifyQuoteResponseCounterProposalPriceValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+    const handleModifyQuoteResponseBeginningDateChange = (quote_id, value) => {
+        setModifyQuoteResponseBeginningDateValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+    const handleModifyQuoteResponseEndDateChange = (quote_id, value) => {
+        setModifyQuoteResponseEndDateValue((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+    const handleAcceptQuoteResponseTextAreaChange = (quote_id, value) => {
+        setAcceptQuoteResponseTextAreaValues((prevState) => ({
+            ...prevState,
+            [quote_id]: value, // Update the value for the specific quote_id
+        }));
     }
 
     // Create a new quote
@@ -75,17 +164,77 @@ function ClientDashboard() {
         }
     };
 
-    const handleAcceptQuote = async (quoteId) => {
+    const handleQuitQuote = async (quote_id, response_note) => {
+        const quit_note = quitQuoteResponseTextAreaValues[quote_id];
+        if (!quit_note) { // Check if the quit note is empty
+            alert('Please provide a quit note.');    
+            return;
+        }
         try {
-            const response = await fetch("http://localhost:8081/client-accept-quote", {
-                method: "POST",
-                headers: { "Content-type": "application/json" },
-                body: JSON.stringify({ quote_id: quoteId, client_id: clientId })
+            const response = await fetch('http://localhost:8081/client-quit-quote', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, response_note, quit_note, client_id:clientId })
             });
             if (response.ok) {
-                alert("Quote accepted successfully.");
+                alert('Quote quit successfully.');
             } else {
-                alert("Failed to accept quote.");
+                alert('Error quiting quote.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleModifyQuote = async (quote_id, response_note) => {
+        const modify_note = modifyQuoteResponseTextAreaValues[quote_id];
+        const modify_counter_proposal_price = modifyQuoteResponseCounterProposalPriceValue[quote_id];
+        const modify_beginning_date = modifyQuoteResponseBeginningDateValue[quote_id];
+        const modify_end_date = modifyQuoteResponseEndDateValue[quote_id];
+        if (!modify_note) { // Check if the modify note is empty
+            alert('Please provide a modify note.');    
+            return;
+        }
+        if (modify_beginning_date && !modify_end_date) { // check if beginning_date is provided and end_date is not provided
+            alert('Please provide both the beginning and end dates.');    
+            return;
+        }
+        if (!modify_beginning_date && modify_end_date) { // check if beginning_date is not provided and end_date is provided
+            alert('Please provide both the beginning and end dates.');    
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/client-modify-quote', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id:clientId })
+            });
+            if (response.ok) {
+                alert('Quote modified successfully.');
+            } else {
+                alert('Error modifying quote.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleAcceptQuote = async (quote_id, response_note, time_window) => {
+        const accept_note = acceptQuoteResponseTextAreaValues[quote_id];
+        if (!accept_note) { // Check if the accept note is empty
+            alert('Please provide an accept note.');    
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/client-accept-quote', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ quote_id, response_note, accept_note, time_window, client_id:clientId })
+            });
+            if (response.ok) {
+                alert('Quote accepted successfully.');
+            } else {
+                alert('Error accepting quote.');
             }
         } catch (error) {
             console.log(error);
@@ -281,7 +430,85 @@ function ClientDashboard() {
                                     ))}
                                 </div>
                                 <p><strong>Status:</strong> {quote.response_status}</p>
-                                <button onClick={() => handleAcceptQuote(quote.quote_id)}>Accept Quote</button>
+                                {quote.response_status === 'In Negotiation - Awaiting Client\'s Response' && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => toggleQuitQuoteResponseVisibility(quote.quote_id)}>Quit Quote</button>
+                                        <button onClick={() => toggleModifyQuoteResponseVisibility(quote.quote_id)}>Modify Quote</button>
+                                        <button onClick={() => toggleAcceptQuoteResponseVisibility(quote.quote_id)}>Accept Quote</button>
+                                    </div>
+                                )}
+                                {isAcceptQuoteResponseVisible[quote.quote_id] && (
+                                    <div id="ds-div-response-note">
+                                        <p><strong>Accept Quote Note:</strong></p>
+                                        <textarea value={acceptQuoteResponseTextAreaValues[quote.quote_id] || ''}
+                                            onChange={(e) => 
+                                                handleAcceptQuoteResponseTextAreaChange(quote.quote_id, e.target.value)
+                                            }
+                                            rows="4"
+                                            cols="30"
+                                            placeholder="Enter notes here..."
+                                        />
+                                        <button onClick={() => handleAcceptQuote(quote.quote_id, quote.response_note, quote.time_window)}>Accept Quote</button>
+                                    </div>
+                                )}
+                                {isModifyQuoteResponseVisible[quote.quote_id] && (
+                                    <div id="ds-div-response-note">
+                                        <p><strong>Modify Quote Note:</strong></p>
+                                        <textarea value={modifyQuoteResponseTextAreaValues[quote.quote_id] || ''}
+                                            onChange={(e) => 
+                                                handleModifyQuoteResponseTextAreaChange(quote.quote_id, e.target.value)
+                                            }
+                                            rows="4"
+                                            cols="30"
+                                            placeholder="Enter notes here..."
+                                        />
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>Counter Proposal Price:</label>
+                                            <input 
+                                                type="text" 
+                                                value={modifyQuoteResponseCounterProposalPriceValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteResponseCounterProposalPriceChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>Beginning Date:</label>
+                                            <input 
+                                                type="date"
+                                                value={modifyQuoteResponseBeginningDateValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteResponseBeginningDateChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <div id="ds-div-hidden-accept-request-row">
+                                            <label>End Date:</label>
+                                            <input 
+                                                type="date"
+                                                value={modifyQuoteResponseEndDateValue[quote.quote_id] || ''}
+                                                onChange={(e) => 
+                                                    handleModifyQuoteResponseEndDateChange(quote.quote_id, e.target.value)
+                                                }
+                                            />
+                                        </div>
+                                        <button onClick={() => handleModifyQuote(quote.quote_id, quote.response_note)}>Modify Quote</button>
+                                    </div>
+                                )}
+                                {isQuitQuoteResponseVisible[quote.quote_id] && (
+                                    <div id="ds-div-response-note">
+                                        <p><strong>Quit Quote Note:</strong></p>
+                                        <textarea value={quitQuoteResponseTextAreaValues[quote.quote_id] || ''}
+                                            onChange={(e) => 
+                                                handleQuitQuoteResponseTextAreaChange(quote.quote_id, e.target.value)
+                                            }
+                                            rows="4"
+                                            cols="30"
+                                            placeholder="Enter notes here..."
+                                        />
+                                        <button onClick={() => handleQuitQuote(quote.quote_id, quote.response_note)}>Quit Quote</button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (

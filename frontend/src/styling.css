@@ -314,21 +314,6 @@ ClientDashboard.jsx component styling
   border: 1px solid #ddd;
 }
 
-#client-div-card button {
-  background-color: rgb(197, 220, 247);
-  font-size: medium;
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 5px;
-  margin-top: 0.5rem;
-}
-
-#client-div-card button:hover {
-  background-color: lightsteelblue;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
 #client-div-card div {
   margin-top: 1rem;
 }

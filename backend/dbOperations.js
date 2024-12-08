@@ -273,7 +273,7 @@ const dbOperations = {
     },  
     getAllQuotes: async function () {
         try {
-            const sql = 'SELECT * FROM quote_response WHERE response_status = "In Negotiation - Awaiting Client\'s Response" OR response_status = "In Negotiation - Awaiting Dave\'s Response"';
+            const sql = 'SELECT * FROM quote_response';
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, (err, result) => {
                     if (err) {
@@ -360,14 +360,14 @@ const dbOperations = {
             console.log(error);
         }
     },
-    acceptQuoteRequest: async function (quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date) {
+    acceptQuoteRequest: async function (quote_id, request_note, response_note, counter_proposal_price, beginning_date, end_date, client_id) {
         try {
             response_note = `${request_note}!@#$%^&*Dave Smith!@#$%^&*${response_note}`;
             const response_id = uuidv4();
             const status = 'In Negotiation - Awaiting Client\'s Response';
             const time_window = `${beginning_date} to ${end_date}`
-            const sql = 'INSERT INTO quote_response (response_id, quote_id, counter_proposal_price, time_window, response_note, response_status) VALUES (?, ?, ?, ?, ?, ?)';
-            const values = [response_id, quote_id, counter_proposal_price, time_window, response_note, status];
+            const sql = 'INSERT INTO quote_response (response_id, quote_id, counter_proposal_price, time_window, response_note, response_status, client_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            const values = [response_id, quote_id, counter_proposal_price, time_window, response_note, status, client_id];
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -421,14 +421,18 @@ const dbOperations = {
             let time_window;
             let sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
             let values = [status, response_note, quote_id];
-            if (beginning_date && end_date) { // Check if both beginning_date and end_date are provided
+            if (beginning_date && end_date && !counter_proposal_price) { // Check if both beginning_date and end_date but no counter_proposal_price is provided
                 time_window = `${beginning_date} to ${end_date}`
                 sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ? WHERE quote_id = ?';
                 values = [status, response_note, time_window, quote_id];
             }
-            if (counter_proposal_price) { // Check if counter_proposal_price is provided
+            if (counter_proposal_price && beginning_date && end_date) { // Check if counter_proposal_price, beginning_date, and end_date is provided
                 sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ?, counter_proposal_price = ? WHERE quote_id = ?';
                 values = [status, response_note, time_window, counter_proposal_price, quote_id];
+            }
+            if (counter_proposal_price && !beginning_date && !end_date) { // Check if counter_proposal_price but no beginning_date or end_date is provided
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, counter_proposal_price = ? WHERE quote_id = ?';
+                values = [status, response_note, counter_proposal_price, quote_id];
             }
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
@@ -553,16 +557,16 @@ const dbOperations = {
             console.log(error);
         }
     },
-    getQuoteIdFromClient: async function (client_id) {
+    getClientQuotes: async function (client_id) {
         try {
-            const sql = 'SELECT quote_id FROM request_for_quote WHERE client_id = ?';
+            const sql = 'SELECT * FROM quote_response WHERE client_id = ?';
             const values = [client_id];
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve(result[0].quote_id);
+                        resolve(result);
                     }
                 });
             });
@@ -571,12 +575,75 @@ const dbOperations = {
             console.log(error);
         }
     },
-    getClientQuotes: async function (client_id) {
+    clientAcceptQuote: async function (quote_id, response_note, accept_note, time_window, client_id) {
         try {
-            const quote_id = await dbOperations.getQuoteIdFromClient(client_id);
+            // Get client's name
+            const client_name = await dbOperations.getClientFullName(client_id);
 
-            const sql = 'SELECT * FROM quote_response WHERE quote_id = ?';
-            const values = [quote_id];
+            // Add client's name and accept note to response note
+            response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${accept_note}`;
+
+            // Update quote response
+            const quote_response_status = 'Accepted';
+            const sql1 = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
+            const values1 = [quote_response_status, response_note, quote_id];
+            const response1 = await new Promise((resolve, reject) => {
+                db.query(sql1, values1, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+
+            const order_id = uuidv4();
+            const order_status = 'In Progress';
+            const beginning_date = time_window.split(' to ')[0];
+            const end_date = time_window.split(' to ')[1];
+            const sql2 = 'INSERT INTO order_of_work (order_id, quote_id, work_start_date, work_end_date, order_status, client_id) VALUES (?, ?, ?, ?, ?, ?)';
+            const values2 = [order_id, quote_id, beginning_date, end_date, order_status, client_id];
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql2, values2, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response1 && response2;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    clientModifyQuote: async function (quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id) {
+        try {
+            // get client's name
+            const client_name = await dbOperations.getClientFullName(client_id);
+
+            // add client's name and modify note to response note
+            response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${modify_note}`;
+
+            // update quote response
+            const quote_response_status = 'In Negotiation - Awaiting Dave\'s Response';
+
+            let time_window;
+            let sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
+            let values = [quote_response_status, response_note, quote_id];
+            if (modify_beginning_date && modify_end_date && !modify_counter_proposal_price) { // Check if both beginning_date and end_date but no counter_proposal_price are provided
+                time_window = `${modify_beginning_date} to ${modify_end_date}`
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ? WHERE quote_id = ?';
+                values = [quote_response_status, response_note, time_window, quote_id];
+            }
+            if (modify_counter_proposal_price && modify_beginning_date && modify_end_date) { // Check if counter_proposal_price, beginning_date, and end_date are provided
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, time_window = ?, counter_proposal_price = ? WHERE quote_id = ?';
+                values = [quote_response_status, response_note, time_window, modify_counter_proposal_price, quote_id];
+            }
+            if (modify_counter_proposal_price && !modify_beginning_date && !modify_end_date) { // Check if counter_proposal_price is provided but not both beginning_date and end_date
+                sql = 'UPDATE quote_response SET response_status = ?, response_note = ?, counter_proposal_price = ? WHERE quote_id = ?';
+                values = [quote_response_status, response_note, modify_counter_proposal_price, quote_id];
+            }
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -591,10 +658,18 @@ const dbOperations = {
             console.log(error);
         }
     },
-    clientAcceptQuote: async function (quote_id, client_id) {
+    clientQuitQuote: async function (quote_id, response_note, quit_note, client_id) {
         try {
-            const sql = 'UPDATE request_for_quote SET client_id = ? WHERE quote_id = ?';
-            const values = [client_id, quote_id];
+            // get client's name
+            const client_name = await dbOperations.getClientFullName(client_id);
+
+            // add client's name and modify note to response note
+            response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${quit_note}`;
+
+            // update quote response
+            const quote_response_status = 'Client Quit';
+            const sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
+            const values = [quote_response_status, response_note, quote_id];
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -608,7 +683,7 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    }
+    },
 }
 
 
