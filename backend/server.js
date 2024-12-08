@@ -149,8 +149,8 @@ app.post('/modify-quote', async (request, response) => {
 
 app.post('/generate-bill', async (request, response) => {
     try {
-        const {quote_id, order_id} = request.body;
-        const result = await dbOperations.generateBill(quote_id, order_id);
+        const {quote_id, order_id, client_id} = request.body;
+        const result = await dbOperations.generateBill(quote_id, order_id, client_id);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);
@@ -231,6 +231,56 @@ app.post('/client-modify-quote', async (request, response) => {
     try {
         const { quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id } = request.body;
         const result = await dbOperations.clientModifyQuote( quote_id, response_note, modify_note, modify_counter_proposal_price, modify_beginning_date, modify_end_date, client_id );
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/get-client-orders', async (request, response) => {
+    try {
+        const {client_id} = request.body;
+        const result = await dbOperations.getClientOrders(client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/get-client-bills', async (request, response) => {
+    try {
+        const {client_id} = request.body;
+        const result = await dbOperations.getClientBills(client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/get-client-bill-responses', async (request, response) => {
+    try {
+        const {client_id} = request.body;
+        const result = await dbOperations.getClientBillResponses(client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-pay-bill', async (request, response) => {
+    try {
+        const {bill_id, bill_amount, client_id} = request.body;
+        const result = await dbOperations.clientPayBill(bill_id,  bill_amount, client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-dispute-bill', async (request, response) => {
+    try {
+        const {bill_id, bill_amount, response_note ,client_id} = request.body;
+        const result = await dbOperations.clientDisputeBill(bill_id, bill_amount, response_note, client_id);
         response.status(200).send(result);
     } catch (error) {
         response.status(500).send(error);

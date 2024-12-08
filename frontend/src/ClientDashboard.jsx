@@ -8,6 +8,7 @@ function ClientDashboard() {
     const [quotes, setQuotes] = useState([]);
     const [orders, setOrders] = useState([]);
     const [bills, setBills] = useState([]);
+    const [billResponses, setBillResponses] = useState([]);
     const [propertyAddress, setPropertyAddress] = useState("");
     const [proposedPrice, setProposedPrice] = useState("");
     const [squareFeet, setSquareFeet] = useState("");
@@ -26,6 +27,8 @@ function ClientDashboard() {
     const [modifyQuoteResponseBeginningDateValue, setModifyQuoteResponseBeginningDateValue] = useState({});
     const [modifyQuoteResponseEndDateValue, setModifyQuoteResponseEndDateValue] = useState({});
     const [acceptQuoteResponseTextAreaValues, setAcceptQuoteResponseTextAreaValues] = useState({});
+    const [isDisputeBillResponseVisible, setIsDisputeBillResponseVisible] = useState({});
+    const [disputeBillResponseTextAreaValues, setDisputeBillResponseTextAreaValues] = useState({});
 
     const { clientId } = useContext(AuthContext);
 
@@ -78,6 +81,13 @@ function ClientDashboard() {
         }));
     }
 
+    const toggleDisputeBillResponseVisibility = (bill_id) => {
+        setIsDisputeBillResponseVisible((prevState) => ({
+            ...prevState,
+            [bill_id]: !prevState[bill_id]
+        }));
+    }
+
     const handleQuitQuoteResponseTextAreaChange = (quote_id, value) => {
         setQuitQuoteResponseTextAreaValues((prevState) => ({
             ...prevState,
@@ -112,6 +122,13 @@ function ClientDashboard() {
         setAcceptQuoteResponseTextAreaValues((prevState) => ({
             ...prevState,
             [quote_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleDisputeBillResponseTextAreaChange = (bill_id, value) => {
+        setDisputeBillResponseTextAreaValues((prevState) => ({
+            ...prevState,
+            [bill_id]: value, // Update the value for the specific quote_id
         }));
     }
 
@@ -162,6 +179,11 @@ function ClientDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
     };
 
     const handleQuitQuote = async (quote_id, response_note) => {
@@ -184,6 +206,11 @@ function ClientDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
     }
 
     const handleModifyQuote = async (quote_id, response_note) => {
@@ -217,6 +244,11 @@ function ClientDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
     }
 
     const handleAcceptQuote = async (quote_id, response_note, time_window) => {
@@ -239,8 +271,66 @@ function ClientDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
+    }
+
+    const handlePayBill = async (bill_id, bill_amount) => {
+        try {
+            const response = await fetch('http://localhost:8081/client-pay-bill', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ bill_id, bill_amount, client_id:clientId })
+            });
+            if (response.ok) {
+                alert('Bill paid successfully.');
+            } else {
+                alert('Error paying bill.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
     }
     
+    const handleDisputeBill = async (bill_id, bill_amount) => {
+        const dispute_note = disputeBillResponseTextAreaValues[bill_id];
+        if (!dispute_note) { // Check if the dispute note is empty
+            alert('Please provide a dispute note.');    
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/client-dispute-bill', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ bill_id, bill_amount, response_note:dispute_note,client_id:clientId })
+            });
+            if (response.ok) {
+                alert('Bill disputed successfully.');
+            } else {
+                alert('Error disputing bill.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        setIsDisputeBillResponseVisible((prevState) => ({
+            ...prevState,
+            [bill_id]: false
+        }));
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
+    }
+
     const parseNotes = (notes) => {
         if (!notes) return [];
         const parts = notes.split('!@#$%^&*');
@@ -311,9 +401,54 @@ function ClientDashboard() {
         }
     }
 
+    const getClientOrders = async () => {
+        try {
+            const response = await fetch("http://localhost:8081/get-client-orders", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ client_id:clientId })
+            });
+            const data = await response.json();
+            setOrders(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getClientBills = async () => {
+        try {
+            const response = await fetch("http://localhost:8081/get-client-bills", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ client_id:clientId })
+            });
+            const data = await response.json();
+            setBills(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getBillResponses = async () => {
+        try {
+            const response = await fetch("http://localhost:8081/get-client-bill-responses", {
+                method: "POST",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ client_id:clientId })
+            });
+            const data = await response.json();
+            setBillResponses(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getClientRequests();
         getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
     }, []);
 
     return (
@@ -540,12 +675,58 @@ function ClientDashboard() {
                     {bills.length > 0 ? (
                         bills.map((bill) => (
                             <div key={bill.bill_id} id="client-div-card">
+                                <p><strong>Bill ID:</strong> {bill.bill_id}</p>
+                                <p><strong>Order ID:</strong> {bill.order_id}</p>
                                 <p><strong>Bill Amount:</strong> ${bill.bill_amount}</p>
                                 <p><strong>Status:</strong> {bill.bill_status}</p>
+                                {bill.bill_status === "Awaiting Client's Response" && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => toggleDisputeBillResponseVisibility(bill.bill_id)}>Dispute</button>
+                                        <button onClick={() => handlePayBill(bill.bill_id, bill.bill_amount)}>Pay</button>
+                                    </div> 
+                                )}
+                                {isDisputeBillResponseVisible[bill.bill_id] && (
+                                <div id="ds-div-response-note">
+                                    <p><strong>Dispute Note:</strong></p>
+                                    <textarea value={disputeBillResponseTextAreaValues[bill.bill_id] || ''}
+                                        onChange={(e) => 
+                                            handleDisputeBillResponseTextAreaChange(bill.bill_id, e.target.value)
+                                        }
+                                        rows="4"
+                                        cols="30"
+                                        placeholder="Enter notes here..."
+                                    />
+                                    <button onClick={() => handleDisputeBill(bill.bill_id, bill.bill_amount)}>Submit Dispute</button>
+                                </div>
+                            )}
                             </div>
                         ))
                     ) : (
                         <p>No bills available.</p>
+                    )}
+                </div>
+                {/* Bill Responses Section */}
+                <div id="client-div-card-column">
+                    <h2>Your Bills Responses</h2>
+                    {billResponses.length > 0 ? (
+                        billResponses.map((billResponse) => (
+                            <div key={billResponse.bill_id} id="client-div-card">
+                                <p><strong>Bill ID:</strong> {billResponse.bill_response_id}</p>
+                                <p><strong>Order ID:</strong> {billResponse.bill_id}</p>
+                                <p><strong>Bill Amount:</strong> ${billResponse.response_bill_amount}</p>
+                                <p id="client-p-cardrowlabel">Notes:</p>
+                                <div id="client-div-chatwindow">
+                                    {parseNotes(billResponse.response_note).map((entry, index) => (
+                                        <p key={index}>
+                                            <strong>{entry.name}:</strong> {entry.message}
+                                        </p>
+                                    ))}
+                                </div>
+                                <p><strong>Status:</strong> {billResponse.response_status}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No bill responses available.</p>
                     )}
                 </div>
             </div>

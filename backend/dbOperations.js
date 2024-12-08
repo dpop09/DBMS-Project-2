@@ -290,7 +290,7 @@ const dbOperations = {
     },
     getAllWorkOrders: async function () {
         try {
-            const sql = 'SELECT * FROM order_of_work WHERE order_status = "In Progress"';
+            const sql = 'SELECT * FROM order_of_work';
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, (err, result) => {
                     if (err) {
@@ -307,7 +307,7 @@ const dbOperations = {
     },
     getAllBills: async function () {
         try {
-            const sql = 'SELECT * FROM bill WHERE bill_status = "Awaiting Client\'s Response"';
+            const sql = 'SELECT * FROM bill';
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, (err, result) => {
                     if (err) {
@@ -397,7 +397,7 @@ const dbOperations = {
     quitQuote: async function (quote_id, response_note, quit_note) {
         try {
             response_note = `${response_note}!@#$%^&*Dave Smith!@#$%^&*${quit_note}`;
-            const status = 'Quit';
+            const status = 'Dave Quits';
             const sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
             const values = [status, response_note, quote_id];
             const response = await new Promise((resolve, reject) => {
@@ -466,7 +466,7 @@ const dbOperations = {
             console.log(error);
         }
     },
-    generateBill: async function (quote_id, order_id) {
+    generateBill: async function (quote_id, order_id, client_id) {
         try {
             let status = 'Completed';
             let sql = 'UPDATE order_of_work SET order_status = ? WHERE order_id = ?';
@@ -483,8 +483,8 @@ const dbOperations = {
             const quote_price = await dbOperations.getPriceFromQuote(quote_id);
             const bill_id = uuidv4();
             status = 'Awaiting Client\'s Response';
-            sql = 'INSERT INTO bill (bill_id, order_id, bill_amount, bill_status) VALUES (?, ?, ?, ?)';
-            values = [bill_id, order_id, quote_price, status];
+            sql = 'INSERT INTO bill (bill_id, order_id, bill_amount, bill_status, client_id) VALUES (?, ?, ?, ?, ?)';
+            values = [bill_id, order_id, quote_price, status, client_id];
             const response2 = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -501,7 +501,7 @@ const dbOperations = {
     },
     getAllBillResponses: async function () {
         try {
-            const sql = 'SELECT * FROM bill_response WHERE response_status = "Disputed"';
+            const sql = 'SELECT * FROM bill_response';
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, (err, result) => {
                     if (err) {
@@ -519,11 +519,11 @@ const dbOperations = {
     respondToBillResponse: async function (response_id, initial_notes, response_note, modified_price) {
         try {
             response_note = `${initial_notes}!@#$%^&*Dave Smith!@#$%^&*${response_note}`;
-            let sql = 'UPDATE bill_response SET response_note = ?, response_bill_amount = ? WHERE bill_response_id = ?';
-            let values = [response_note, modified_price, response_id];
+            let sql = 'UPDATE bill_response SET response_note = ?, response_bill_amount = ?, response_status = ? WHERE bill_response_id = ?';
+            let values = [response_note, modified_price, 'Disputed - Awaiting Client\'s Response', response_id];
             if (!modified_price) { // Check if modified_price is provided
-                sql = 'UPDATE bill_response SET response_note = ? WHERE bill_response_id = ?';
-                values = [response_note, response_id];
+                sql = 'UPDATE bill_response SET response_note = ?, response_status = ? WHERE bill_response_id = ?';
+                values = [response_note, 'Disputed - Awaiting Client\'s Response', response_id];
             }
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
@@ -667,7 +667,7 @@ const dbOperations = {
             response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${quit_note}`;
 
             // update quote response
-            const quote_response_status = 'Client Quit';
+            const quote_response_status = 'Client Quits';
             const sql = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
             const values = [quote_response_status, response_note, quote_id];
             const response = await new Promise((resolve, reject) => {
@@ -684,6 +684,123 @@ const dbOperations = {
             console.log(error);
         }
     },
+    getClientOrders: async function (client_id) {
+        try {
+            const sql = 'SELECT * FROM order_of_work WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getClientBills: async function (client_id) {
+        try {
+            const sql = 'SELECT * FROM bill WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getClientBillResponses: async function (client_id) {
+        try {
+            const sql = 'SELECT * FROM bill_response WHERE client_id = ?';
+            const values = [client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    clientPayBill: async function (bill_id, bill_amount, client_id) {
+        try {
+            const sql = 'UPDATE bill SET bill_status = ? WHERE bill_id = ? AND client_id = ?';
+            const values = ['Paid', bill_id, client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            
+            const bill_response_id = uuidv4();
+            const sql2 = 'INSERT INTO bill_response (bill_response_id, bill_id, response_note, response_status, response_bill_amount, client_id) VALUES (?, ?, ?, ?, ?, ?)';
+            const values2 = [bill_response_id, bill_id, '', 'Paid', bill_amount, client_id];
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql2, values2, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response && response2;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    clientDisputeBill: async function (bill_id, bill_amount, response_note, client_id) {
+        try {
+            const sql = 'UPDATE bill SET bill_status = ? WHERE bill_id = ? AND client_id = ?';
+            const values = ['Disputed', bill_id, client_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            const client_name = await dbOperations.getClientFullName(client_id);
+            response_note = `!@#$%^&*${client_name}!@#$%^&*${response_note}`;
+            const bill_response_id = uuidv4();
+            const sql2 = 'INSERT INTO bill_response (bill_response_id, bill_id, response_note, response_status, response_bill_amount, client_id) VALUES (?, ?, ?, ?, ?, ?)';
+            const values2 = [bill_response_id, bill_id, response_note, 'Disputed - Awaiting Dave\'s Response', bill_amount, client_id];
+            const response2 = await new Promise((resolve, reject) => {
+                db.query(sql2, values2, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response && response2;
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 

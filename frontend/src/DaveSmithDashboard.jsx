@@ -36,29 +36,6 @@ function DaveSmithDashboard() {
         navigate('/');
     }
 
-    useEffect(() => {
-        fetch('http://localhost:8081/get-all-quote-requests')
-            .then(response => response.json())
-            .then(data => setRequests(data))
-            .catch(error => console.log(error));
-        fetch('http://localhost:8081/get-all-quotes')
-            .then(response => response.json())
-            .then(data => setQuotes(data))
-            .catch(error => console.log(error));
-        fetch('http://localhost:8081/get-all-work-orders')
-            .then(response => response.json())
-            .then(data => setWorkOrders(data))
-            .catch(error => console.log(error));
-        fetch('http://localhost:8081/get-all-bills')
-            .then(response => response.json())
-            .then(data => setBills(data))
-            .catch(error => console.log(error));
-        fetch('http://localhost:8081/get-all-bill-responses')
-            .then(response => response.json())
-            .then(data => setBillResponses(data))
-            .catch(error => console.log(error));
-    }, []);
-
     const parseNotes = (notes) => {
         if (!notes) return [];
         const parts = notes.split('!@#$%^&*');
@@ -229,6 +206,11 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
 
     const handleAcceptRequest = async (quote_id, request_note, client_id) => {
@@ -254,6 +236,11 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
 
     const handleQuitQuote = async (quote_id, response_note) => {
@@ -276,6 +263,11 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
 
     const handleModifyQuote = async (quote_id, response_note) => {
@@ -309,14 +301,19 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
 
-    const handleGenerateBill = async (quote_id, order_id) => {
+    const handleGenerateBill = async (quote_id, order_id, client_id) => {
         try {
             const response = await fetch('http://localhost:8081/generate-bill', {
                 method: 'POST',
                 headers: { 'Content-type': 'application/json' },
-                body: JSON.stringify({ quote_id, order_id })
+                body: JSON.stringify({ quote_id, order_id, client_id })
             });
             if (response.ok) {
                 alert('Bill generated successfully.');
@@ -326,6 +323,11 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
 
     const handleRespondToBill = async (bill_response_id, initial_notes) => {
@@ -349,7 +351,66 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
     }
+    
+    const getQuoteRequests = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-all-quote-requests');
+            const data = await response.json();
+            setRequests(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const getQuotes = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-all-quotes');
+            const data = await response.json();
+            setQuotes(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const getWorkOrders = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-all-work-orders');
+            const data = await response.json();
+            setWorkOrders(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const getBills = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-all-bills');
+            const data = await response.json();
+            setBills(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const getBillResponses = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-all-bill-responses');
+            const data = await response.json();
+            setBillResponses(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    useEffect(() => {
+        getQuoteRequests();
+        getQuotes();
+        getWorkOrders();
+        getBills();
+        getBillResponses();
+    }, []);
 
     return (
         <div id="ds-div-container">
@@ -607,9 +668,11 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Order Status:</p>
                                     <p>{order.order_status}</p>
                                 </div>
-                                <div id="ds-div-buttons">
-                                    <button onClick={() => handleGenerateBill(order.quote_id, order.order_id)}>Generate Bill</button>
-                                </div>
+                                {order.order_status === "Pending" && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => handleGenerateBill(order.quote_id, order.order_id, order.client_id)}>Generate Bill</button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (
@@ -674,9 +737,11 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Bill Status:</p>
                                     <p>{billResponse.response_status}</p>
                                 </div>
-                                <div id="ds-div-buttons">
-                                    <button onClick={() => toggleDisputedBillNoteVisibility(billResponse.bill_response_id)}>Respond</button>
-                                </div>
+                                {billResponse.response_status === "Disputed - Awaiting Dave's Response" && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => toggleDisputedBillNoteVisibility(billResponse.bill_response_id)}>Respond</button>
+                                    </div>
+                                )}
                                 {isDisputedBillNoteVisible[billResponse.bill_response_id] && (
                                     <div id="ds-div-response-note">
                                         <textarea
