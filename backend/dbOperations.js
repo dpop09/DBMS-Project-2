@@ -800,7 +800,45 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    }
+    },
+    clientPayBillResponse: async function (bill_response_id) {
+        try {
+            const sql = 'UPDATE bill_response SET response_status = ? WHERE bill_response_id = ?';
+            const values = ['Paid', bill_response_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    clientDisputeBillResponse: async function (bill_response_id, response_note, dispute_note, client_id) {
+        try {
+            const client_name = await dbOperations.getClientFullName(client_id);
+            response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${dispute_note}`;
+            const sql = 'UPDATE bill_response SET response_status = ?, response_note = ? WHERE bill_response_id = ?';
+            const values = ['Disputed - Awaiting Dave\'s Response', response_note, bill_response_id];
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, values, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            return response;
+        } catch (error) {
+            console.log(error);
+        }
+    },
 }
 
 

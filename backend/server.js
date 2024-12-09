@@ -287,6 +287,26 @@ app.post('/client-dispute-bill', async (request, response) => {
     }
 })
 
+app.post('/client-pay-bill-response', async (request, response) => {
+    try {
+        const {bill_response_id} = request.body;
+        const result = await dbOperations.clientPayBillResponse(bill_response_id);
+        response.status(200).send(result);    
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.post('/client-dispute-bill-response', async (request, response) => {
+    try {
+        const {bill_response_id, response_note, dispute_note, client_id} = request.body;
+        const result = await dbOperations.clientDisputeBillResponse(bill_response_id, response_note, dispute_note, client_id);
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")

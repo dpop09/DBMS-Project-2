@@ -351,6 +351,7 @@ function DaveSmithDashboard() {
         } catch (error) {
             console.log(error);
         }
+        toggleDisputedBillNoteVisibility(bill_response_id);
         getQuoteRequests();
         getQuotes();
         getWorkOrders();

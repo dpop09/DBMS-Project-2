@@ -29,6 +29,8 @@ function ClientDashboard() {
     const [acceptQuoteResponseTextAreaValues, setAcceptQuoteResponseTextAreaValues] = useState({});
     const [isDisputeBillResponseVisible, setIsDisputeBillResponseVisible] = useState({});
     const [disputeBillResponseTextAreaValues, setDisputeBillResponseTextAreaValues] = useState({});
+    const [isDisputeBillResponseResponseVisible, setIsDisputeBillResponseResponseVisible] = useState({});
+    const [disputeBillResponseResponseTextAreaValues, setDisputeBillResponseResponseTextAreaValues] = useState({});
 
     const { clientId } = useContext(AuthContext);
 
@@ -81,6 +83,13 @@ function ClientDashboard() {
         }));
     }
 
+    const toggleDisputeBillResponseResponseVisibility = (bill_response_id) => {
+        setIsDisputeBillResponseResponseVisible((prevState) => ({
+            ...prevState,
+            [bill_response_id]: !prevState[bill_response_id]
+        }));
+    }
+
     const toggleDisputeBillResponseVisibility = (bill_id) => {
         setIsDisputeBillResponseVisible((prevState) => ({
             ...prevState,
@@ -129,6 +138,13 @@ function ClientDashboard() {
         setDisputeBillResponseTextAreaValues((prevState) => ({
             ...prevState,
             [bill_id]: value, // Update the value for the specific quote_id
+        }));
+    }
+
+    const handleDisputeBillResponseResponseTextAreaChange = (bill_response_id, value) => {
+        setDisputeBillResponseResponseTextAreaValues((prevState) => ({
+            ...prevState,
+            [bill_response_id]: value, // Update the value for the specific quote_id
         }));
     }
 
@@ -324,6 +340,56 @@ function ClientDashboard() {
             ...prevState,
             [bill_id]: false
         }));
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
+    }
+
+    const handleDisputeBillResponse = async (bill_response_id, response_note) => {
+        const dispute_note = disputeBillResponseResponseTextAreaValues[bill_response_id];
+        if (!dispute_note) { // Check if the dispute note is empty
+            alert('Please provide a dispute note.');    
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:8081/client-dispute-bill-response', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({ bill_response_id, response_note, dispute_note, client_id:clientId })
+            });
+            if (response.ok) {
+                alert('Bill response disputed successfully.');
+            } else {
+                alert('Error disputing bill response.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+        toggleDisputeBillResponseResponseVisibility(bill_response_id);
+        getClientRequests();
+        getClientQuotes();
+        getClientOrders();
+        getClientBills();
+        getBillResponses();
+    }
+
+    const handlePayBillResponse = async (bill_response_id) => {
+        try {
+            const response = await fetch('http://localhost:8081/client-pay-bill-response', {
+                method: 'POST',
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({bill_response_id})
+            });
+            if (response.ok) {
+                alert('Bill response paid successfully.');
+            } else {
+                alert('Error paying bill response.');
+            }
+        } catch (error) {
+            console.log(error);
+        }
         getClientRequests();
         getClientQuotes();
         getClientOrders();
@@ -723,6 +789,26 @@ function ClientDashboard() {
                                     ))}
                                 </div>
                                 <p><strong>Status:</strong> {billResponse.response_status}</p>
+                                {billResponse.response_status === "Disputed - Awaiting Client's Response" && (
+                                    <div id="ds-div-buttons">
+                                        <button onClick={() => toggleDisputeBillResponseResponseVisibility(billResponse.bill_response_id)}>Dispute</button>
+                                        <button onClick={() => handlePayBillResponse(billResponse.bill_response_id)}>Pay</button>
+                                    </div>
+                                )}
+                                {isDisputeBillResponseResponseVisible[billResponse.bill_response_id] && (
+                                    <div id="ds-div-response-note">
+                                        <p><strong>Dispute Note:</strong></p>
+                                        <textarea value={disputeBillResponseResponseTextAreaValues[billResponse.bill_response_id] || ''}
+                                            onChange={(e) => 
+                                                handleDisputeBillResponseResponseTextAreaChange(billResponse.bill_response_id, e.target.value)
+                                            }
+                                            rows="4"
+                                            cols="30"
+                                            placeholder="Enter notes here..."
+                                        />
+                                        <button onClick={() => handleDisputeBillResponse(billResponse.bill_response_id, billResponse.response_note)}>Submit Dispute</button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (
