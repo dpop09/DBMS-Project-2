@@ -434,6 +434,16 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getThisMonthQuotes = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-this-month-quotes');
+            const data = await response.json();
+            setThisMonthQuotes(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -442,6 +452,7 @@ function DaveSmithDashboard() {
         getBillResponses();
         getBigClients();
         getDifficultClients();
+        getThisMonthQuotes();
     }, []);
 
     return (
@@ -827,6 +838,7 @@ function DaveSmithDashboard() {
                 <p>No clients to display.</p>
             )}
             <h1>This Month Quotes</h1>
+            <p>{thisMonthQuotes}</p>
             <h1>Prospective Clients</h1>
             <h1>Largest Driveway</h1>
             <h1>Overdue Bills</h1>

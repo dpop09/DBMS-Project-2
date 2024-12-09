@@ -325,6 +325,15 @@ app.get('/get-difficult-clients', async (request, response) => {
     }
 })
 
+app.get('/get-this-month-quotes', async (request, response) => {
+    try {
+        const result = await dbOperations.getThisMonthQuotes();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")

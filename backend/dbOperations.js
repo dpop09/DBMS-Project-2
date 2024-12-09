@@ -577,16 +577,22 @@ const dbOperations = {
     },
     clientAcceptQuote: async function (quote_id, response_note, accept_note, time_window, client_id) {
         try {
+            // Get the current date and time in JavaScript
+            const currentDate = new Date();
+            // Convert the current date to a format suitable for MySQL (YYYY-MM-DD HH:MM:SS)
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
             // Get client's name
             const client_name = await dbOperations.getClientFullName(client_id);
-
             // Add client's name and accept note to response note
             response_note = `${response_note}!@#$%^&*${client_name}!@#$%^&*${accept_note}`;
-
             // Update quote response
             const quote_response_status = 'Accepted';
-            const sql1 = 'UPDATE quote_response SET response_status = ?, response_note = ? WHERE quote_id = ?';
-            const values1 = [quote_response_status, response_note, quote_id];
+            const sql1 = `
+                UPDATE quote_response 
+                SET response_status = ?, response_note = ?, date_accepted = ? 
+                WHERE quote_id = ?
+            `;
+            const values1 = [quote_response_status, response_note, formattedDate, quote_id];
             const response1 = await new Promise((resolve, reject) => {
                 db.query(sql1, values1, (err, result) => {
                     if (err) {
@@ -900,8 +906,29 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    }
+    },
+    getThisMonthQuotes: async function () {
+        try {
+            const sql = `
+                SELECT COUNT(*) AS count 
+                FROM quote_response 
+                WHERE MONTH(date_accepted) = 12 AND YEAR(date_accepted) = YEAR(CURDATE())
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
     
+            return String(response[0].count); // Return the number of rows
+        } catch (error) {
+            console.log(error);
+        }
+    },    
 }
 
 
