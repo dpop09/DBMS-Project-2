@@ -352,6 +352,15 @@ app.get('/get-largest-driveway-addresses', async (request, response) => {
     }
 })
 
+app.get('/get-overdue-bills', async (request, response) => {
+    try {
+        const result = await dbOperations.getOverdueBills();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")

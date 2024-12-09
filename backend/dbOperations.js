@@ -480,11 +480,15 @@ const dbOperations = {
                     }
                 });
             });
+            // Get the current date and time in JavaScript
+            const currentDate = new Date();
+            // Convert the current date to a format suitable for MySQL (YYYY-MM-DD HH:MM:SS)
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
             const quote_price = await dbOperations.getPriceFromQuote(quote_id);
             const bill_id = uuidv4();
             status = 'Awaiting Client\'s Response';
-            sql = 'INSERT INTO bill (bill_id, order_id, bill_amount, bill_status, client_id) VALUES (?, ?, ?, ?, ?)';
-            values = [bill_id, order_id, quote_price, status, client_id];
+            sql = 'INSERT INTO bill (bill_id, order_id, bill_amount, bill_status, client_id, date_generated) VALUES (?, ?, ?, ?, ?, ?)';
+            values = [bill_id, order_id, quote_price, status, client_id, formattedDate];
             const response2 = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -977,6 +981,32 @@ const dbOperations = {
     
             // Map the response to return only the property_address values
             return response.map(row => row.property_address);
+        } catch (error) {
+            console.log(error);
+        }
+    },
+    getOverdueBills: async function () {
+        try {
+            const sql = `
+                SELECT b.*
+                FROM bill b
+                INNER JOIN bill_response br ON b.bill_id = br.bill_id
+                WHERE br.response_status != 'Paid'
+                  AND b.date_generated <= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Return the full rows of bills that are overdue
+            //console.log(response);
+            return response;
         } catch (error) {
             console.log(error);
         }

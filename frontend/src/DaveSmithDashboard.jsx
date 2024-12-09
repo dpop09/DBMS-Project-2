@@ -464,6 +464,16 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getOverdueBills = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-overdue-bills');
+            const data = await response.json();
+            setOverdueBills(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -475,6 +485,7 @@ function DaveSmithDashboard() {
         getThisMonthQuotes();
         getProspectiveClients();
         getLargestDrivewayAddresses();
+        getOverdueBills();
     }, []);
 
     return (
@@ -733,7 +744,7 @@ function DaveSmithDashboard() {
                                     <p id="ds-p-cardrowlabel">Order Status:</p>
                                     <p>{order.order_status}</p>
                                 </div>
-                                {order.order_status === "Pending" && (
+                                {order.order_status === "In Progress" && (
                                     <div id="ds-div-buttons">
                                         <button onClick={() => handleGenerateBill(order.quote_id, order.order_id, order.client_id)}>Generate Bill</button>
                                     </div>
@@ -882,6 +893,30 @@ function DaveSmithDashboard() {
                 <p>No clients to display.</p>
             )}
             <h1>Overdue Bills</h1>
+                    {overdueBills.length > 0 ? (
+                        overdueBills.map((bill) => (
+                            <div key={bill.bill_id} id="ds-div-card">
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill ID:</p>
+                                    <p>{bill.bill_id}</p>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Order ID:</p>
+                                    <p>{bill.order_id}</p>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill Amount:</p>
+                                    <p>${bill.bill_amount}</p>
+                                </div>
+                                <div id="ds-div-cardrow">
+                                    <p id="ds-p-cardrowlabel">Bill Status:</p>
+                                    <p>{bill.bill_status}</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p>No overdue bills are available.</p>
+                    )}
             <h1>Bad Clients</h1>
             <h1>Good Clients</h1>
         </div>
