@@ -444,6 +444,16 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getProspectiveClients = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-prospective-clients');
+            const data = await response.json();
+            setProspectiveClients(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -453,6 +463,7 @@ function DaveSmithDashboard() {
         getBigClients();
         getDifficultClients();
         getThisMonthQuotes();
+        getProspectiveClients();
     }, []);
 
     return (
@@ -840,6 +851,15 @@ function DaveSmithDashboard() {
             <h1>This Month Quotes</h1>
             <p>{thisMonthQuotes}</p>
             <h1>Prospective Clients</h1>
+            {prospectiveClients.length > 0 ? (
+                <div>
+                    {prospectiveClients.map((client_name, index) => (
+                        <p key={index}>{client_name}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No clients to display.</p>
+            )}
             <h1>Largest Driveway</h1>
             <h1>Overdue Bills</h1>
             <h1>Bad Clients</h1>

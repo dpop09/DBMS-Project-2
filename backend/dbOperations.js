@@ -928,7 +928,36 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    },    
+    },
+    getProspectiveClients: async function () {
+        try {
+            const sql = `
+                SELECT DISTINCT c.client_id
+                FROM client c
+                LEFT JOIN request_for_quote rfq ON c.client_id = rfq.client_id
+                WHERE rfq.client_id IS NULL
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Map the response to return only the client_id values
+            let prospectiveClients = response.map(row => row.client_id);
+            for (let i = 0; i < prospectiveClients.length; i++) {
+                prospectiveClients[i] = await dbOperations.getClientFullName(prospectiveClients[i]);
+            }
+            //console.log(prospectiveClients);
+            return prospectiveClients;
+        } catch (error) {
+            console.log(error);
+        }
+    }    
 }
 
 
