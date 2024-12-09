@@ -761,10 +761,13 @@ const dbOperations = {
                     }
                 });
             });
-            
+            // Get the current date and time in JavaScript
+            const currentDate = new Date();
+            // Convert the current date to a format suitable for MySQL (YYYY-MM-DD HH:MM:SS)
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
             const bill_response_id = uuidv4();
-            const sql2 = 'INSERT INTO bill_response (bill_response_id, bill_id, response_note, response_status, response_bill_amount, client_id) VALUES (?, ?, ?, ?, ?, ?)';
-            const values2 = [bill_response_id, bill_id, '', 'Paid', bill_amount, client_id];
+            const sql2 = 'INSERT INTO bill_response (bill_response_id, bill_id, response_note, response_status, response_bill_amount, client_id, paid_date) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            const values2 = [bill_response_id, bill_id, '', 'Paid', bill_amount, client_id, formattedDate];
             const response2 = await new Promise((resolve, reject) => {
                 db.query(sql2, values2, (err, result) => {
                     if (err) {
@@ -813,8 +816,12 @@ const dbOperations = {
     },
     clientPayBillResponse: async function (bill_response_id) {
         try {
-            const sql = 'UPDATE bill_response SET response_status = ? WHERE bill_response_id = ?';
-            const values = ['Paid', bill_response_id];
+            // Get the current date and time in JavaScript
+            const currentDate = new Date();
+            // Convert the current date to a format suitable for MySQL (YYYY-MM-DD HH:MM:SS)
+            const formattedDate = currentDate.toISOString().slice(0, 19).replace('T', ' ');
+            const sql = 'UPDATE bill_response SET response_status = ?, paid_date = ? WHERE bill_response_id = ?';
+            const values = ['Paid', formattedDate, bill_response_id];
             const response = await new Promise((resolve, reject) => {
                 db.query(sql, values, (err, result) => {
                     if (err) {
@@ -824,6 +831,7 @@ const dbOperations = {
                     }
                 });
             });
+            console.log(response);
             return response;
         } catch (error) {
             console.log(error);
@@ -1010,7 +1018,70 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
+    }, 
+    getBadClients: async function () {
+        try {
+            const sql = `
+                SELECT DISTINCT b.client_id
+                FROM bill b
+                INNER JOIN bill_response br ON b.bill_id = br.bill_id
+                WHERE br.response_status != 'Paid'
+                  AND b.date_generated <= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Return the array of client_ids
+            let badClients = response.map(row => row.client_id);
+            for (let i = 0; i < badClients.length; i++) {
+                badClients[i] = await dbOperations.getClientFullName(badClients[i]);
+            }
+            //console.log(badClients);
+            return badClients;
+        } catch (error) {
+            console.log(error);
+            return []; // Return an empty array in case of an error
+        }
     },
+    getGoodClients: async function () {
+        try {
+            const sql = `
+                SELECT b.client_id
+                FROM bill b
+                INNER JOIN bill_response br ON b.bill_id = br.bill_id
+                WHERE br.response_status = 'Paid'
+                  AND TIMESTAMPDIFF(HOUR, b.date_generated, br.paid_date) <= 24
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Map the response to an array of objects
+            let goodClients = response.map(row => row.client_id);
+            for (let i = 0; i < response.length; i++) {
+                goodClients[i] = await dbOperations.getClientFullName(response[i].client_id);
+            }
+            //console.log(goodClients)
+            return goodClients;
+        } catch (error) {
+            console.log(error);
+            return []; // Return an empty array in case of error
+        }
+    }
+    
 }
 
 

@@ -361,6 +361,24 @@ app.get('/get-overdue-bills', async (request, response) => {
     }
 })
 
+app.get('/get-bad-clients', async (request, response) => {    
+    try {
+        const result = await dbOperations.getBadClients();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
+app.get('/get-good-clients', async (request, response) => {
+    try {
+        const result = await dbOperations.getGoodClients();
+        response.status(200).send(result);
+    } catch (error) {    
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")

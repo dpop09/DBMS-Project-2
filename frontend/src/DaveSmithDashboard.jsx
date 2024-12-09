@@ -474,6 +474,26 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getBadClients = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-bad-clients');
+            const data = await response.json();
+            setBadClients(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getGoodClients = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-good-clients');
+            const data = await response.json();
+            setGoodClients(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -486,6 +506,8 @@ function DaveSmithDashboard() {
         getProspectiveClients();
         getLargestDrivewayAddresses();
         getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }, []);
 
     return (
@@ -858,7 +880,7 @@ function DaveSmithDashboard() {
                     ))}
                 </div>
             ) : (
-                <p>No clients to display.</p>
+                <p>No big clients to display.</p>
             )}
             <h1>Difficult Clients</h1>
             {difficultClients.length > 0 ? (
@@ -868,7 +890,7 @@ function DaveSmithDashboard() {
                     ))}
                 </div>
             ) : (
-                <p>No clients to display.</p>
+                <p>No difficult clients to display.</p>
             )}
             <h1>This Month Quotes</h1>
             <p>{thisMonthQuotes}</p>
@@ -880,7 +902,7 @@ function DaveSmithDashboard() {
                     ))}
                 </div>
             ) : (
-                <p>No clients to display.</p>
+                <p>No prospective clients to display.</p>
             )}
             <h1>Largest Driveway</h1>
             {largestDrivewayAddresses.length > 0 ? (
@@ -890,7 +912,7 @@ function DaveSmithDashboard() {
                     ))}
                 </div>
             ) : (
-                <p>No clients to display.</p>
+                <p>No driveway addresses to display.</p>
             )}
             <h1>Overdue Bills</h1>
                     {overdueBills.length > 0 ? (
@@ -918,7 +940,25 @@ function DaveSmithDashboard() {
                         <p>No overdue bills are available.</p>
                     )}
             <h1>Bad Clients</h1>
+            {badClients.length > 0 ? (
+                <div>
+                    {badClients.map((client_name, index) => (
+                        <p key={index}>{client_name}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No bad clients to display.</p>
+            )}
             <h1>Good Clients</h1>
+            {goodClients.length > 0 ? (
+                <div>
+                    {goodClients.map((client_name, index) => (
+                        <p key={index}>{client_name}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No good clients to display.</p>
+            )}
         </div>
     );
 }
