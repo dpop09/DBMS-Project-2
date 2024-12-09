@@ -220,6 +220,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
 
     const handleAcceptRequest = async (quote_id, request_note, client_id) => {
@@ -250,6 +258,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
 
     const handleQuitQuote = async (quote_id, response_note) => {
@@ -277,6 +293,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
 
     const handleModifyQuote = async (quote_id, response_note) => {
@@ -315,6 +339,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
 
     const handleGenerateBill = async (quote_id, order_id, client_id) => {
@@ -337,6 +369,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
 
     const handleRespondToBill = async (bill_response_id, initial_notes) => {
@@ -366,6 +406,14 @@ function DaveSmithDashboard() {
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
+        getDifficultClients();
+        getThisMonthQuotes();
+        getProspectiveClients();
+        getLargestDrivewayAddresses();
+        getOverdueBills();
+        getBadClients();
+        getGoodClients();
     }
     
     const getQuoteRequests = async () => {
