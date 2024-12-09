@@ -957,7 +957,30 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    }    
+    },
+    getLargestDrivewayAddresses: async function () {
+        try {
+            const sql = `
+                SELECT property_address
+                FROM request_for_quote
+                WHERE square_feet = (SELECT MAX(square_feet) FROM request_for_quote)
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Map the response to return only the property_address values
+            return response.map(row => row.property_address);
+        } catch (error) {
+            console.log(error);
+        }
+    },
 }
 
 

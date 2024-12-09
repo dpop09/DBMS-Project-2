@@ -14,7 +14,7 @@ function DaveSmithDashboard() {
     const [difficultClients, setDifficultClients] = useState([]);
     const [thisMonthQuotes, setThisMonthQuotes] = useState([]);
     const [prospectiveClients, setProspectiveClients] = useState([]);
-    const [largetDriveway, setLargetDriveway] = useState([]);
+    const [largestDrivewayAddresses, setLargestDrivewayAddresses] = useState([]);
     const [overdueBills, setOverdueBills] = useState([]);
     const [badClients, setBadClients] = useState([]);
     const [goodClients, setGoodClients] = useState([]);
@@ -454,6 +454,16 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getLargestDrivewayAddresses = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-largest-driveway-addresses');
+            const data = await response.json();
+            setLargestDrivewayAddresses(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -464,6 +474,7 @@ function DaveSmithDashboard() {
         getDifficultClients();
         getThisMonthQuotes();
         getProspectiveClients();
+        getLargestDrivewayAddresses();
     }, []);
 
     return (
@@ -861,6 +872,15 @@ function DaveSmithDashboard() {
                 <p>No clients to display.</p>
             )}
             <h1>Largest Driveway</h1>
+            {largestDrivewayAddresses.length > 0 ? (
+                <div>
+                    {largestDrivewayAddresses.map((address, index) => (
+                        <p key={index}>{address}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No clients to display.</p>
+            )}
             <h1>Overdue Bills</h1>
             <h1>Bad Clients</h1>
             <h1>Good Clients</h1>
