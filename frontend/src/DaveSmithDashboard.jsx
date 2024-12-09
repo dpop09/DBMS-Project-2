@@ -10,6 +10,15 @@ function DaveSmithDashboard() {
     const [bills, setBills] = useState([]);
     const [billResponses, setBillResponses] = useState([]);
 
+    const [bigClients, setBigClients] = useState([]);
+    const [difficultClients, setDifficultClients] = useState([]);
+    const [thisMonthQuotes, setThisMonthQuotes] = useState([]);
+    const [prospectiveClients, setProspectiveClients] = useState([]);
+    const [largetDriveway, setLargetDriveway] = useState([]);
+    const [overdueBills, setOverdueBills] = useState([]);
+    const [badClients, setBadClients] = useState([]);
+    const [goodClients, setGoodClients] = useState([]);
+
     const [isRejectedNoteVisible, setIsRejectedNoteVisible] = useState({});
     const [requestTextAreaValues, setRequestTextAreaValues] = useState({});
     const [isAcceptedNoteVisible, setIsAcceptedNoteVisible] = useState({});
@@ -405,12 +414,23 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getBigClients = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-big-clients');
+            const data = await response.json();
+            setBigClients(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
         getWorkOrders();
         getBills();
         getBillResponses();
+        getBigClients();
     }, []);
 
     return (
@@ -775,6 +795,23 @@ function DaveSmithDashboard() {
                     )}
                 </div>
             </div>
+            <h1>Big Clients</h1>
+            {bigClients.length > 0 ? (
+                <div>
+                    {bigClients.map((clientId, index) => (
+                        <p key={index}>{clientId}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No clients to display.</p>
+            )}
+            <h1>Difficult Clients</h1>
+            <h1>This Month Quotes</h1>
+            <h1>Prospective Clients</h1>
+            <h1>Largest Driveway</h1>
+            <h1>Overdue Bills</h1>
+            <h1>Bad Clients</h1>
+            <h1>Good Clients</h1>
         </div>
     );
 }

@@ -839,6 +839,38 @@ const dbOperations = {
             console.log(error);
         }
     },
+    getBigClients: async function () {
+        try {
+            const sql = `SELECT client_id FROM order_of_work WHERE order_status = 'Completed'`;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+            // Count occurrences of each client_id
+            const clientCounts = response.reduce((counts, row) => {
+                counts[row.client_id] = (counts[row.client_id] || 0) + 1;
+                return counts;
+            }, {});
+            // Find the maximum count
+            const maxCount = Math.max(...Object.values(clientCounts));
+            // Find the client_id(s) with the maximum count
+            const topClients = Object.entries(clientCounts)
+                .filter(([clientId, count]) => count === maxCount)
+                .map(([clientId]) => clientId);
+            for (let i = 0; i < topClients.length; i++) {
+                topClients[i] = await dbOperations.getClientFullName(topClients[i]);
+            }
+            //console.log(topClients);
+            return topClients;
+        } catch (error) {
+            console.log(error);
+        }
+    } 
 }
 
 

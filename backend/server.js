@@ -307,6 +307,15 @@ app.post('/client-dispute-bill-response', async (request, response) => {
     }
 })
 
+app.get('/get-big-clients', async (request, response) => {
+    try {
+        const result = await dbOperations.getBigClients();
+        response.status(200).send(result);
+    } catch (error) {
+        response.status(500).send(error);
+    }
+})
+
 // set up the web server listener
 app.listen(8081, () => {
     console.log("I am listening.")
