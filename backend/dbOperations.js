@@ -859,7 +859,7 @@ const dbOperations = {
             // Find the maximum count
             const maxCount = Math.max(...Object.values(clientCounts));
             // Find the client_id(s) with the maximum count
-            const topClients = Object.entries(clientCounts)
+            let topClients = Object.entries(clientCounts)
                 .filter(([clientId, count]) => count === maxCount)
                 .map(([clientId]) => clientId);
             for (let i = 0; i < topClients.length; i++) {
@@ -870,7 +870,38 @@ const dbOperations = {
         } catch (error) {
             console.log(error);
         }
-    } 
+    },
+    getDifficultClients: async function () {
+        try {
+            const sql = `
+                SELECT client_id
+                FROM quote_response
+                WHERE response_status = 'In Negotiation - Awaiting Client''s Response'
+                GROUP BY client_id
+                HAVING COUNT(*) >= 3
+            `;
+            const response = await new Promise((resolve, reject) => {
+                db.query(sql, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            // Map the result to an array of client_ids
+            let difficultClients = response.map(row => row.client_id);
+            for (let i = 0; i < difficultClients.length; i++) {
+                difficultClients[i] = await dbOperations.getClientFullName(difficultClients[i]);
+            }
+            //console.log(difficultClients);
+            return difficultClients; // Return the array of client_ids
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    
 }
 
 

@@ -424,6 +424,16 @@ function DaveSmithDashboard() {
         }
     }
 
+    const getDifficultClients = async () => {
+        try {
+            const response = await fetch('http://localhost:8081/get-difficult-clients');
+            const data = await response.json();
+            setDifficultClients(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     useEffect(() => {
         getQuoteRequests();
         getQuotes();
@@ -431,6 +441,7 @@ function DaveSmithDashboard() {
         getBills();
         getBillResponses();
         getBigClients();
+        getDifficultClients();
     }, []);
 
     return (
@@ -798,14 +809,23 @@ function DaveSmithDashboard() {
             <h1>Big Clients</h1>
             {bigClients.length > 0 ? (
                 <div>
-                    {bigClients.map((clientId, index) => (
-                        <p key={index}>{clientId}</p>
+                    {bigClients.map((client_name, index) => (
+                        <p key={index}>{client_name}</p>
                     ))}
                 </div>
             ) : (
                 <p>No clients to display.</p>
             )}
             <h1>Difficult Clients</h1>
+            {difficultClients.length > 0 ? (
+                <div>
+                    {difficultClients.map((client_name, index) => (
+                        <p key={index}>{client_name}</p>
+                    ))}
+                </div>
+            ) : (
+                <p>No clients to display.</p>
+            )}
             <h1>This Month Quotes</h1>
             <h1>Prospective Clients</h1>
             <h1>Largest Driveway</h1>
